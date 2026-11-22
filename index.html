@@ -7,7 +7,7 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><b>VINTAGE POS</b><span id="todaySales">Today: ₹0</span></header>
+<header><b>VINTAGE WAFFLE</b><span id="todaySales">Today: ₹0</span></header>
 <div class="main">
 <div class="left">
 <div class="tabs">
@@ -73,11 +73,11 @@
 <div class="owner-box">
 <h4>👑 Owner Notification</h4>
 <label>Owner Number</label><input id="ownerPhone" value="6303033677" maxlength="10" oninput="saveSettings()">
-<label><input type="checkbox" id="ownerNotify" checked style="width:auto" onchange="saveSettings()"> ✅ After Bill Automaticaly Sending Message  to Owner</label>
+<label><input type="checkbox" id="ownerNotify" checked style="width:auto" onchange="saveSettings()"> ✅  After Complte Bill Send Owner Through Whatsapp</label>
 </div>
 <div class="wa-box">
 <h4>📲 Customer Auto Message</h4>
-<label><input type="checkbox" id="custNotify" checked style="width:auto" onchange="saveSettings()"> ✅ Bill ayyaka customer ki kuda auto WhatsApp bill</label>
+<label><input type="checkbox" id="custNotify" checked style="width:auto" onchange="saveSettings()"> ✅ After Complte Bill Send Customer Through Whatsapp</label>
 </div>
 <button class="btn-green" onclick="saveSettings()">💾 Save Settings</button>
 <button class="btn-dark" onclick="testOwnerMsg()">📲 Test Owner Message</button>
@@ -110,8 +110,8 @@
 
 <div class="wa-box">
 <h4>📲 Manual Send</h4>
-<button class="btn-wa" onclick="sendBillWhatsApp()">📲 Customer ki Matrame Pampu</button>
-<button style="background:#f59e0b;color:#fff;width:100%;margin-top:6px" onclick="sendOwnerOnly()">👑 Owner ki Matrame Pampu</button>
+<button class="btn-wa" onclick="sendBillWhatsApp()">Send Message Onley Customer</button>
+<button style="background:#f59e0b;color:#fff;width:100%;margin-top:6px" onclick="sendOwnerOnly()">Send Message Onley Owner</button>
 <button style="background:#fff;border:1px solid #ddd;width:100%;margin-top:6px" onclick="copyBill()">📋 Copy Bill Text</button>
 <p id="waStatus" style="font-size:12px;color:green"></p>
 </div>
