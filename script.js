@@ -59,7 +59,7 @@ function renderColTabs() {
 function renderProducts() {
   renderColTabs(); let q = (document.getElementById('search')?.value || '').toLowerCase(); let html = '';
   products.filter(p => { if (activeCol != 'All' && p.cat != activeCol) return false; if (activeVeg != 'all' && p.veg != activeVeg) return false; if (q && !p.name.toLowerCase().includes(q) && !String(p.barcode).includes(q)) return false; return true; }).forEach(p => {
-    let icon = p.veg == 'veg' ? '<span class="veg-dot"><i></i></span>' : p.veg == 'nonveg' ? '<span class="nonveg-dot"><i></i></span>' : '🥤 ';
+    let icon = p.veg == 'veg' ? '<span class="veg-dot"><i></i></span>' : p.veg == 'nonveg' ? '<span class="nonveg-dot"><i></i></span>';
     let vegTxt = p.veg == 'veg' ? 'VEG' : p.veg == 'nonveg' ? 'NON-VEG' : 'DRINK';
     html += `<div class="prod"><div>${icon}<b>${p.name}</b> <small>${vegTxt} | ${p.cat}</small><br><small>₹${p.price} | Stock: ${p.stock}</small></div><button class="btn-blue" onclick="addToCart(${p.id})">+ Add</button></div>`;
   });
@@ -74,7 +74,7 @@ function addColumn() { let n = document.getElementById('newColName').value.trim(
 function editColumn(i) { let nn = prompt('Column marchu:', columns[i]); if (nn) { let old = columns[i]; columns[i] = nn.trim(); products.forEach(p => { if (p.cat == old) p.cat = nn.trim(); }); save(); renderColumns(); renderProducts(); } }
 function deleteColumn(i) { if (!confirm('Delete?')) return; let old = columns[i]; columns.splice(i, 1); products.forEach(p => { if (p.cat == old) p.cat = 'All'; }); save(); renderColumns(); renderProducts(); }
 function renderMenu() {
-  let html = ''; products.forEach(p => { let ic = p.veg == 'veg' ? '🟢' : p.veg == 'nonveg' ? '🔴' : '🥤'; html += `<div class="prod"><div>${ic} <b>${p.name}</b><br><small>${p.cat} | ₹${p.price} | Stock: ${p.stock}</small></div><div style="display:flex;gap:5px"><button class="btn-orange" onclick="editProduct(${p.id})">✏️ Edit</button><button class="btn-red" onclick="deleteProduct(${p.id})">🗑️</button></div></div>`; });
+  let html = ''; products.forEach(p => { let ic = p.veg == 'veg' ? '🟢' : p.veg == 'nonveg' ? '🔴'; html += `<div class="prod"><div>${ic} <b>${p.name}</b><br><small>${p.cat} | ₹${p.price} | Stock: ${p.stock}</small></div><div style="display:flex;gap:5px"><button class="btn-orange" onclick="editProduct(${p.id})">✏️ Edit</button><button class="btn-red" onclick="deleteProduct(${p.id})">🗑️</button></div></div>`; });
   document.getElementById('menuList').innerHTML = html;
   document.getElementById('menuCount').innerText = products.length;
   renderColumns();
@@ -108,21 +108,21 @@ function doPrint(html) { document.getElementById('billPrint').innerHTML = html; 
 function getTotals() { let sub = cart.reduce((s, c) => s + c.price * c.qty, 0); let discP = +document.getElementById('discount').value; let disc = sub * discP / 100; let after = sub - disc; let gstP = parseInt(document.getElementById('gstMode').value); let gst = after * gstP / 100; let total = after + gst; return { sub, disc, gst, gstP, total }; }
 function getBillText() {
   if (cart.length == 0) return null; let t = getTotals(); let cust = document.getElementById('custName').value || 'Customer'; let pay = document.getElementById('payMode').value; let orderType = document.getElementById('orderType').value; let billNo = Date.now().toString().slice(-6);
-  let msg = `🧾 *${settings.shopName}*\n${settings.shopAddr}\n${settings.shopPhone}\n----------------------\n👤 Customer: ${cust}\n🧾 Bill No: ${billNo}\n📦 Order: ${orderType}\n📅 ${new Date().toLocaleString()}\n💳 Payment: ${pay}\n----------------------\n`;
-  cart.forEach(c => { let ic = c.veg == 'veg' ? '🟢' : c.veg == 'nonveg' ? '🔴' : '🥤'; msg += `${ic} ${c.name} x ${c.qty} = ₹${c.price * c.qty}\n`; });
+  let msg = ` *${settings.shopName}*\n${settings.shopAddr}\n${settings.shopPhone}\n----------------------\n Customer: ${cust}\n Bill No: ${billNo}\n Order: ${orderType}\n📅 ${new Date().toLocaleString()}\n💳 Payment: ${pay}\n----------------------\n`;
+  cart.forEach(c => { let ic = c.veg == 'veg' ? '🟢' : c.veg == 'nonveg' ? '🔴'; msg += `${ic} ${c.name} x ${c.qty} = ₹${c.price * c.qty}\n`; });
   msg += `----------------------\nSubtotal: ₹${t.sub}\nDiscount: -₹${t.disc.toFixed(2)}\nGST (${t.gstP}%): ₹${t.gst.toFixed(2)}\n*Total: ₹${t.total.toFixed(2)}*\n----------------------\nThank You Visit Again! 🙏`;
   return { msg, ...t, cust, pay, orderType, billNo };
 }
 function sendBillWhatsApp() { let data = getBillText(); if (!data) return alert('Cart empty!'); let phone = document.getElementById('custPhone').value.trim(); if (!phone || phone.length != 10) return alert('Customer Phone 10 digits ivvu'); window.open('https://wa.me/91' + phone + '?text=' + encodeURIComponent(data.msg), '_blank'); }
-function sendOwnerOnly() { let data = getBillText(); if (!data) return alert('Cart empty!'); let ownerPhone = settings.ownerPhone || '6303033677'; let itemsTxt = cart.map(c => `${c.name} x${c.qty}`).join(', '); let omsg = `🔔 *NEW BILL - ${settings.shopName}*\nBill No: ${data.billNo}\nCustomer: ${data.cust}\nItems: ${itemsTxt}\n*Total: ₹${data.total.toFixed(2)}* - ${data.pay}`; window.open('https://wa.me/91' + ownerPhone + '?text=' + encodeURIComponent(omsg), '_blank'); }
+function sendOwnerOnly() { let data = getBillText(); if (!data) return alert('Cart empty!'); let ownerPhone = settings.ownerPhone || '6303033677'; let itemsTxt = cart.map(c => `${c.name} x${c.qty}`).join(', '); let omsg = ` *NEW BILL - ${settings.shopName}*\nBill No: ${data.billNo}\nCustomer: ${data.cust}\nItems: ${itemsTxt}\n*Total: ₹${data.total.toFixed(2)}* - ${data.pay}`; window.open('https://wa.me/91' + ownerPhone + '?text=' + encodeURIComponent(omsg), '_blank'); }
 function copyBill() { let d = getBillText(); if (!d) return alert('Cart empty!'); navigator.clipboard.writeText(d.msg).then(() => alert('Copied!')); }
-function testOwnerMsg() { window.open('https://wa.me/91' + settings.ownerPhone + '?text=' + encodeURIComponent('🔔 TEST - Owner notification working ✅ - ' + settings.shopName), '_blank'); }
+function testOwnerMsg() { window.open('https://wa.me/91' + settings.ownerPhone + '?text=' + encodeURIComponent(' TEST - Owner notification working ✅ - ' + settings.shopName), '_blank'); }
 function saveSale(data, phone) { cart.forEach(c => { let p = products.find(x => x.id == c.id); if (p) p.stock -= c.qty; }); sales.push({ date: new Date().toLocaleString(), cust: data.cust, total: data.total, mode: data.pay, items: cart.length, phone: phone || '', billNo: data.billNo }); save(); cart = []; renderCart(); renderProducts(); renderMenu(); }
 function checkout() {
   if (cart.length == 0) return alert('Cart empty!');
   let data = getBillText(); let custPhone = document.getElementById('custPhone').value.trim(); let cartCopy = [...cart]; let custMsg = data.msg; let ownerPhone = settings.ownerPhone || '6303033677';
   let itemsTxt = cartCopy.map(c => `${c.name} x${c.qty}`).join(', ');
-  let ownerMsg = `🔔 *NEW BILL - ${settings.shopName}*\nBill No: ${data.billNo}\nCustomer: ${data.cust} ${custPhone ? '- ' + custPhone : ''}\nItems: ${itemsTxt}\n*Total: ₹${data.total.toFixed(2)}*\nPayment: ${data.pay}`;
+  let ownerMsg = ` *NEW BILL - ${settings.shopName}*\nBill No: ${data.billNo}\nCustomer: ${data.cust} ${custPhone ? '- ' + custPhone : ''}\nItems: ${itemsTxt}\n*Total: ₹${data.total.toFixed(2)}*\nPayment: ${data.pay}`;
   saveSale(data, custPhone);
   let html = buildBillHTML(data.cust, cartCopy, data.sub, data.disc, data.gst, data.gstP, data.total, data.pay, data.orderType, data.billNo);
   doPrint(html);
