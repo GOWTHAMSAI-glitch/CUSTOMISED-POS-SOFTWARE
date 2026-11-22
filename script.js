@@ -1,5 +1,4 @@
-// ===== GOWTHAM POS - MAIN LOGIC =====
-let columns = JSON.parse(localStorage.getItem('pos_columns') || '["All","Main Course","Starters","Biryani","Drinks","Meals"]');
+let columns = JSON.parse(localStorage.getItem('pos_columns') || '["All","Main Course","Starters","Biryani","Drinks","Meals","WAFFLE"]');
 let products = JSON.parse(localStorage.getItem('pos_products') || '[]');
 if (products.length == 0) {
   products = [
@@ -11,13 +10,13 @@ if (products.length == 0) {
     { id: 6, name: 'Chicken 65', price: 200, stock: 15, barcode: '1006', gst: 5, cat: 'Starters', veg: 'nonveg' },
     { id: 7, name: 'Tea', price: 15, stock: 100, barcode: '1007', gst: 0, cat: 'Drinks', veg: 'drink' },
     { id: 8, name: 'Cool Drink', price: 40, stock: 40, barcode: '1008', gst: 18, cat: 'Drinks', veg: 'drink' },
+    { id: 9, name: 'Classic Waffle', price: 99, stock: 30, barcode: '1009', gst: 5, cat: 'WAFFLE', veg: 'veg' },
+    { id: 10, name: 'Chocolate Waffle', price: 129, stock: 30, barcode: '1010', gst: 5, cat: 'WAFFLE', veg: 'veg' },
   ]; save();
 }
 let cart = [];
 let sales = JSON.parse(localStorage.getItem('pos_sales') || '[]');
 let settings = JSON.parse(localStorage.getItem('pos_settings') || '{"shopName":"GOWTHAM STORE","shopAddr":"Nellore, AP","shopPhone":"Ph: 90000 00000","ownerPhone":"6303033677","ownerNotify":true,"custNotify":true}');
-if (!settings.ownerPhone) settings.ownerPhone = '6303033677';
-if (settings.custNotify === undefined) settings.custNotify = true;
 let activeCol = 'All'; let activeVeg = 'all';
 
 function save() { localStorage.setItem('pos_products', JSON.stringify(products)); localStorage.setItem('pos_sales', JSON.stringify(sales)); localStorage.setItem('pos_columns', JSON.stringify(columns)); }
@@ -27,47 +26,85 @@ function saveSettings() {
   document.getElementById('ownerDisplay').innerText = settings.ownerPhone;
   alert('Saved!');
 }
-document.getElementById('shopName').value = settings.shopName;
-document.getElementById('shopAddr').value = settings.shopAddr;
-document.getElementById('shopPhone').value = settings.shopPhone;
-document.getElementById('ownerPhone').value = settings.ownerPhone;
-document.getElementById('ownerNotify').checked = settings.ownerNotify;
-document.getElementById('custNotify').checked = settings.custNotify;
-document.getElementById('ownerDisplay').innerText = settings.ownerPhone;
-document.getElementById('custPhone').addEventListener('input', () => { document.getElementById('custDisplay').innerText = document.getElementById('custPhone').value || 'Enter Phone'; });
+function loadSettings() {
+  if(!document.getElementById('shopName')) return;
+  document.getElementById('shopName').value = settings.shopName;
+  document.getElementById('shopAddr').value = settings.shopAddr;
+  document.getElementById('shopPhone').value = settings.shopPhone;
+  document.getElementById('ownerPhone').value = settings.ownerPhone;
+  document.getElementById('ownerNotify').checked = settings.ownerNotify;
+  document.getElementById('custNotify').checked = settings.custNotify;
+  document.getElementById('ownerDisplay').innerText = settings.ownerPhone;
+}
 
-function showTab(id, btn) { document.querySelectorAll('[id^="tab-"]').forEach(e => e.classList.add('hidden')); document.getElementById('tab-' + id).classList.remove('hidden'); document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); if (id == 'report') showReport(); if (id == 'menu') renderMenu(); if (id == 'columns') renderColumns(); }
+// FIXED TAB FUNCTION - Idi main fix
+function showTab(id, btn) {
+  document.querySelectorAll('[id^="tab-"]').forEach(e => e.classList.add('hidden'));
+  let el = document.getElementById('tab-' + id);
+  if(el) el.classList.remove('hidden');
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  if (id == 'report') showReport();
+  if (id == 'menu') renderMenu();
+  if (id == 'columns') renderColumns();
+}
 function filterVeg(v) { activeVeg = v; renderProducts(); }
 function setCol(c) { activeCol = c; renderProducts(); }
-function renderColTabs() { let html = '<button class="' + (activeCol == 'All' ? 'active' : '') + '" onclick="setCol(\'All\')">All</button>'; columns.filter(c => c != 'All').forEach(c => { html += `<button class="${activeCol == c ? 'active' : ''}" onclick="setCol('${c}')">${c}</button>`; }); document.getElementById('colTabs').innerHTML = html; }
+function renderColTabs() {
+  let el = document.getElementById('colTabs'); if(!el) return;
+  let html = '<button class="' + (activeCol == 'All' ? 'active' : '') + '" onclick="setCol(\'All\')">All</button>';
+  columns.filter(c => c != 'All').forEach(c => { html += `<button class="${activeCol == c ? 'active' : ''}" onclick="setCol('${c}')">${c}</button>`; });
+  el.innerHTML = html;
+}
 function renderProducts() {
-  renderColTabs(); let q = (document.getElementById('search').value || '').toLowerCase(); let html = '';
+  renderColTabs(); let q = (document.getElementById('search')?.value || '').toLowerCase(); let html = '';
   products.filter(p => { if (activeCol != 'All' && p.cat != activeCol) return false; if (activeVeg != 'all' && p.veg != activeVeg) return false; if (q && !p.name.toLowerCase().includes(q) && !String(p.barcode).includes(q)) return false; return true; }).forEach(p => {
     let icon = p.veg == 'veg' ? '<span class="veg-dot"><i></i></span>' : p.veg == 'nonveg' ? '<span class="nonveg-dot"><i></i></span>' : '🥤 ';
     let vegTxt = p.veg == 'veg' ? 'VEG' : p.veg == 'nonveg' ? 'NON-VEG' : 'DRINK';
-    html += `<div class="prod"><div>${icon}<b>${p.name}</b> <small style="background:${p.veg == 'veg' ? '#dcfce7' : p.veg == 'nonveg' ? '#fee2e2' : '#e0e7ff'};padding:2px 6px;border-radius:10px">${vegTxt} | ${p.cat}</small><br><small>₹${p.price} | Stock: ${p.stock}</small></div><button class="btn-blue" onclick="addToCart(${p.id})">+ Add</button></div>`;
+    html += `<div class="prod"><div>${icon}<b>${p.name}</b> <small>${vegTxt} | ${p.cat}</small><br><small>₹${p.price} | Stock: ${p.stock}</small></div><button class="btn-blue" onclick="addToCart(${p.id})">+ Add</button></div>`;
   });
-  document.getElementById('productList').innerHTML = html || 'No product';
+  document.getElementById('productList').innerHTML = html || '<p style="padding:20px;text-align:center">Ee Column lo product ledu. Menu Edit lo Add cheyi.</p>';
 }
-function renderColumns() { let html = ''; columns.forEach((c, i) => { html += `<div class="prod"><div><b>${c}</b><br><small>${products.filter(p => p.cat == c).length} items</small></div>${c == 'All' ? '<small>Default</small>' : `<div style="display:flex;gap:5px"><button class="btn-orange" onclick="editColumn(${i})">✏️ Edit</button><button class="btn-red" onclick="deleteColumn(${i})">🗑️</button></div>`}</div>`; }); document.getElementById('colList').innerHTML = html; document.getElementById('pCategory').innerHTML = columns.filter(c => c != 'All').map(c => `<option>${c}</option>`).join(''); }
-function addColumn() { let n = document.getElementById('newColName').value.trim(); if (!n) return alert('Column name ivvu'); columns.push(n); save(); document.getElementById('newColName').value = ''; renderColumns(); renderProducts(); }
+function renderColumns() {
+  let html = ''; columns.forEach((c, i) => { html += `<div class="prod"><div><b>${c}</b><br><small>${products.filter(p => p.cat == c).length} items</small></div>${c == 'All' ? '<small>Default</small>' : `<div style="display:flex;gap:5px"><button class="btn-orange" onclick="editColumn(${i})">✏️ Edit</button><button class="btn-red" onclick="deleteColumn(${i})">🗑️</button></div>`}</div>`; });
+  document.getElementById('colList').innerHTML = html;
+  document.getElementById('pCategory').innerHTML = columns.filter(c => c != 'All').map(c => `<option>${c}</option>`).join('');
+}
+function addColumn() { let n = document.getElementById('newColName').value.trim(); if (!n) return alert('Column name ivvu'); columns.push(n); save(); document.getElementById('newColName').value = ''; renderColumns(); renderProducts(); alert('Column Added ✅'); }
 function editColumn(i) { let nn = prompt('Column marchu:', columns[i]); if (nn) { let old = columns[i]; columns[i] = nn.trim(); products.forEach(p => { if (p.cat == old) p.cat = nn.trim(); }); save(); renderColumns(); renderProducts(); } }
 function deleteColumn(i) { if (!confirm('Delete?')) return; let old = columns[i]; columns.splice(i, 1); products.forEach(p => { if (p.cat == old) p.cat = 'All'; }); save(); renderColumns(); renderProducts(); }
-function renderMenu() { let html = ''; products.forEach(p => { let ic = p.veg == 'veg' ? '🟢' : p.veg == 'nonveg' ? '🔴' : '🥤'; html += `<div class="prod"><div>${ic} <b>${p.name}</b><br><small>${p.cat} | ₹${p.price} | Stock: ${p.stock}</small></div><div style="display:flex;gap:5px"><button class="btn-orange" onclick="editProduct(${p.id})">✏️ Edit</button><button class="btn-red" onclick="deleteProduct(${p.id})">🗑️</button></div></div>`; }); document.getElementById('menuList').innerHTML = html; document.getElementById('menuCount').innerText = products.length; renderColumns(); }
-function saveProduct() { let name = document.getElementById('pName').value.trim(); let price = +document.getElementById('pPrice').value; let stock = +document.getElementById('pStock').value || 0; let barcode = document.getElementById('pBarcode').value || Date.now(); let cat = document.getElementById('pCategory').value || 'All'; let veg = document.querySelector('input[name="pVeg"]:checked').value; let gst = +document.getElementById('pGst').value || 0; let editId = document.getElementById('editId').value; if (!name || !price) return alert('Name & Price kavali!'); if (editId) { let p = products.find(x => x.id == editId); if (p) { p.name = name; p.price = price; p.stock = stock; p.barcode = barcode; p.cat = cat; p.veg = veg; p.gst = gst; } alert('Updated! ✅'); } else { products.push({ id: Date.now(), name, price, stock, barcode, cat, veg, gst }); alert('Added! ✅'); } save(); cancelEdit(); renderProducts(); renderMenu(); }
-function editProduct(id) { let p = products.find(x => x.id == id); document.getElementById('pName').value = p.name; document.getElementById('pPrice').value = p.price; document.getElementById('pStock').value = p.stock; document.getElementById('pBarcode').value = p.barcode; document.getElementById('pCategory').value = p.cat; document.querySelector(`input[name="pVeg"][value="${p.veg}"]`).checked = true; document.getElementById('pGst').value = p.gst; document.getElementById('editId').value = p.id; document.getElementById('editingName').innerText = p.name; document.getElementById('editInfo').classList.remove('hidden'); document.getElementById('saveBtn').innerText = 'Update ✅'; document.getElementById('cancelBtn').style.display = 'block'; showTab('menu', document.querySelectorAll('.tabs button')[1]); }
+function renderMenu() {
+  let html = ''; products.forEach(p => { let ic = p.veg == 'veg' ? '🟢' : p.veg == 'nonveg' ? '🔴' : '🥤'; html += `<div class="prod"><div>${ic} <b>${p.name}</b><br><small>${p.cat} | ₹${p.price} | Stock: ${p.stock}</small></div><div style="display:flex;gap:5px"><button class="btn-orange" onclick="editProduct(${p.id})">✏️ Edit</button><button class="btn-red" onclick="deleteProduct(${p.id})">🗑️</button></div></div>`; });
+  document.getElementById('menuList').innerHTML = html;
+  document.getElementById('menuCount').innerText = products.length;
+  renderColumns();
+}
+function saveProduct() {
+  let name = document.getElementById('pName').value.trim(); let price = +document.getElementById('pPrice').value; let stock = +document.getElementById('pStock').value || 0; let barcode = document.getElementById('pBarcode').value || Date.now(); let cat = document.getElementById('pCategory').value || 'All'; let veg = document.querySelector('input[name="pVeg"]:checked').value; let gst = +document.getElementById('pGst').value || 0; let editId = document.getElementById('editId').value;
+  if (!name || !price) return alert('Name & Price kavali!');
+  if (editId) { let p = products.find(x => x.id == editId); if (p) { p.name = name; p.price = price; p.stock = stock; p.barcode = barcode; p.cat = cat; p.veg = veg; p.gst = gst; } alert('Updated! ✅'); } else { products.push({ id: Date.now(), name, price, stock, barcode, cat, veg, gst }); alert('Added! ✅'); }
+  save(); cancelEdit(); renderProducts(); renderMenu();
+}
+function editProduct(id) {
+  let p = products.find(x => x.id == id);
+  document.getElementById('pName').value = p.name; document.getElementById('pPrice').value = p.price; document.getElementById('pStock').value = p.stock; document.getElementById('pBarcode').value = p.barcode; document.getElementById('pCategory').value = p.cat;
+  document.querySelector(`input[name="pVeg"][value="${p.veg}"]`).checked = true;
+  document.getElementById('pGst').value = p.gst; document.getElementById('editId').value = p.id; document.getElementById('editingName').innerText = p.name; document.getElementById('editInfo').classList.remove('hidden'); document.getElementById('saveBtn').innerText = 'Update ✅'; document.getElementById('cancelBtn').style.display = 'block';
+  showTab('menu', document.querySelectorAll('.tabs button')[1]);
+  window.scrollTo(0,0);
+}
 function cancelEdit() { document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('pStock').value = ''; document.getElementById('pBarcode').value = ''; document.getElementById('pGst').value = '5'; document.getElementById('editId').value = ''; document.getElementById('editInfo').classList.add('hidden'); document.getElementById('saveBtn').innerText = 'Save Product'; document.getElementById('cancelBtn').style.display = 'none'; }
 function deleteProduct(id) { if (!confirm('Delete?')) return; products = products.filter(x => x.id != id); save(); renderProducts(); renderMenu(); }
 function addToCart(id) { let p = products.find(x => x.id == id); if (!p || p.stock <= 0) return alert('Out of Stock!'); let c = cart.find(x => x.id == id); if (c) c.qty++; else cart.push({ id: p.id, name: p.name, price: p.price, qty: 1, veg: p.veg }); renderCart(); }
 function renderCart() { let h = ''; let sub = 0; cart.forEach((c, i) => { let amt = c.price * c.qty; sub += amt; let ic = c.veg == 'veg' ? '🟢' : c.veg == 'nonveg' ? '🔴' : '🥤'; h += `<tr><td>${ic} ${c.name}<br>₹${c.price}</td><td><button onclick="changeQty(${i},-1)">-</button> ${c.qty} <button onclick="changeQty(${i},1)">+</button></td><td>₹${amt}</td><td><button onclick="removeItem(${i})">✕</button></td></tr>`; }); document.getElementById('cart').innerHTML = h; let discP = +document.getElementById('discount').value; let disc = sub * discP / 100; let after = sub - disc; let gstP = parseInt(document.getElementById('gstMode').value); let gst = after * gstP / 100; document.getElementById('sub').innerText = '₹' + sub; document.getElementById('discAmt').innerText = '-₹' + disc.toFixed(2); document.getElementById('gstAmt').innerText = '₹' + gst.toFixed(2); document.getElementById('grand').innerText = '₹' + (after + gst).toFixed(2); updateToday(); }
 function changeQty(i, d) { cart[i].qty += d; if (cart[i].qty <= 0) cart.splice(i, 1); renderCart(); }
 function removeItem(i) { cart.splice(i, 1); renderCart(); }
-function newBill() { cart = []; renderCart(); document.getElementById('custName').value = ''; document.getElementById('custPhone').value = ''; document.getElementById('custDisplay').innerText = 'Enter Phone'; }
+function newBill() { cart = []; renderCart(); document.getElementById('custName').value = ''; document.getElementById('custPhone').value = ''; }
 async function connectUSB() { try { await navigator.usb.requestDevice({ filters: [] }); document.getElementById('usbStatus').innerText = '● USB Connected ✅'; document.getElementById('miniStatus').innerText = 'USB Connected ✅'; } catch (e) { document.getElementById('usbStatus').innerText = '● Using Windows Default Printer'; document.getElementById('miniStatus').innerText = 'Windows Default Printer'; } }
 async function connectBT() { try { let d = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] }); document.getElementById('btStatus').innerText = '● Bluetooth: ' + d.name; document.getElementById('miniStatus').innerText = 'Bluetooth: ' + d.name; } catch (e) { alert('Bluetooth connect avvaledu'); } }
 function buildBillHTML(cust, cart, sub, disc, gst, gstP, total, pay, orderType, billNo) { let items = cart.map(c => `${c.veg == 'veg' ? '[VEG]' : c.veg == 'nonveg' ? '[NON-VEG]' : ''} ${c.name} x ${c.qty} = ₹${c.price * c.qty}<br>`).join(''); return `<div style="padding:8px;text-align:center"><h2>${settings.shopName}</h2><p>${settings.shopAddr}<br>${settings.shopPhone}</p><hr><p style="text-align:left">Customer: ${cust}<br>Order: ${orderType}<br>Date: ${new Date().toLocaleString()}<br>Pay: ${pay}<br>Bill No: ${billNo}</p><hr><div style="text-align:left">${items}</div><hr><p style="text-align:left">Subtotal: ₹${sub}<br>Discount: -₹${disc.toFixed(2)}<br>GST: ₹${gst.toFixed(2)}</p><h3>Total: ₹${total.toFixed(2)}</h3><hr><p>Thank You!</p></div>`; }
 function testPrint() { let html = buildBillHTML('Test', [{ name: 'Chicken Biryani', qty: 1, price: 180, veg: 'nonveg' }], 180, 0, 9, 5, 189, 'Cash', 'Dine-In', 'TEST'); doPrint(html); }
-function doPrint(html) { let paper = document.getElementById('paperSize').value; let w = paper == '58' ? '58mm' : paper == 'a4' ? '210mm' : '80mm'; let st = document.createElement('style'); st.innerHTML = `@media print{ @page{size:${w} auto;margin:0} }`; document.head.appendChild(st); document.getElementById('billPrint').innerHTML = html; window.print(); }
+function doPrint(html) { document.getElementById('billPrint').innerHTML = html; window.print(); }
 function getTotals() { let sub = cart.reduce((s, c) => s + c.price * c.qty, 0); let discP = +document.getElementById('discount').value; let disc = sub * discP / 100; let after = sub - disc; let gstP = parseInt(document.getElementById('gstMode').value); let gst = after * gstP / 100; let total = after + gst; return { sub, disc, gst, gstP, total }; }
 function getBillText() {
   if (cart.length == 0) return null; let t = getTotals(); let cust = document.getElementById('custName').value || 'Customer'; let pay = document.getElementById('payMode').value; let orderType = document.getElementById('orderType').value; let billNo = Date.now().toString().slice(-6);
@@ -85,18 +122,19 @@ function checkout() {
   if (cart.length == 0) return alert('Cart empty!');
   let data = getBillText(); let custPhone = document.getElementById('custPhone').value.trim(); let cartCopy = [...cart]; let custMsg = data.msg; let ownerPhone = settings.ownerPhone || '6303033677';
   let itemsTxt = cartCopy.map(c => `${c.name} x${c.qty}`).join(', ');
-  let ownerMsg = `🔔 *NEW BILL - ${settings.shopName}*\n----------------------\n🧾 Bill No: ${data.billNo}\n👤 Customer: ${data.cust} ${custPhone ? '- ' + custPhone : ''}\n📦 Order: ${data.orderType}\n📅 ${new Date().toLocaleString()}\n----------------------\nItems: ${itemsTxt}\n----------------------\n*Total: ₹${data.total.toFixed(2)}*\n💳 Payment: ${data.pay}\n----------------------`;
+  let ownerMsg = `🔔 *NEW BILL - ${settings.shopName}*\nBill No: ${data.billNo}\nCustomer: ${data.cust} ${custPhone ? '- ' + custPhone : ''}\nItems: ${itemsTxt}\n*Total: ₹${data.total.toFixed(2)}*\nPayment: ${data.pay}`;
   saveSale(data, custPhone);
   let html = buildBillHTML(data.cust, cartCopy, data.sub, data.disc, data.gst, data.gstP, data.total, data.pay, data.orderType, data.billNo);
   doPrint(html);
   if (settings.custNotify && custPhone && custPhone.length == 10) { setTimeout(() => { window.open('https://wa.me/91' + custPhone + '?text=' + encodeURIComponent(custMsg), '_blank'); }, 1200); }
   if (settings.ownerNotify) { setTimeout(() => { window.open('https://wa.me/91' + ownerPhone + '?text=' + encodeURIComponent(ownerMsg), '_blank'); }, 2500); }
-  document.getElementById('custName').value = ''; document.getElementById('custPhone').value = ''; document.getElementById('custDisplay').innerText = 'Enter Phone';
-  alert('Bill Done! ✅ Print + Customer + Owner ki vellindi');
+  document.getElementById('custName').value = ''; document.getElementById('custPhone').value = '';
+  alert('Bill Done! ✅');
 }
-function updateToday() { let today = new Date().toDateString(); let sum = sales.filter(s => new Date(s.date).toDateString() == today).reduce((a, b) => a + b.total, 0); document.getElementById('todaySales').innerText = 'Today: ₹' + sum.toFixed(0); }
+function updateToday() { let today = new Date().toDateString(); let sum = sales.filter(s => new Date(s.date).toDateString() == today).reduce((a, b) => a + b.total, 0); let el=document.getElementById('todaySales'); if(el) el.innerText = 'Today: ₹' + sum.toFixed(0); }
 function showReport() { let today = new Date().toDateString(); let t = sales.filter(s => new Date(s.date).toDateString() == today); let sum = t.reduce((a, b) => a + b.total, 0); document.getElementById('reportText').innerHTML = `Today Bills: ${t.length}<br>Total Sales: ₹${sum}`; document.getElementById('salesList').innerHTML = t.map(s => `<div class="prod"><div><b>${s.cust} ${s.phone ? '- ' + s.phone : ''}</b><br><small>${s.date} | ${s.mode}</small></div><b>₹${s.total}</b></div>`).join(''); }
 function clearAll() { if (confirm('All data delete?')) { localStorage.clear(); location.reload(); } }
-document.getElementById('gstMode').addEventListener('change', renderCart);
-document.getElementById('discount').addEventListener('change', renderCart);
-renderProducts(); renderCart(); renderMenu(); renderColumns(); updateToday();
+document.getElementById('gstMode')?.addEventListener('change', renderCart);
+document.getElementById('discount')?.addEventListener('change', renderCart);
+document.getElementById('custPhone')?.addEventListener('input', () => { document.getElementById('custDisplay').innerText = document.getElementById('custPhone').value || 'Enter Phone'; });
+loadSettings(); renderProducts(); renderCart(); renderMenu(); renderColumns(); updateToday();
