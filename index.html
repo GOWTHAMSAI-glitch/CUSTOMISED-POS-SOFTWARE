@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GOWTHAM STORE - POS PRO</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><b>🛒 GOWTHAM STORE - POS PRO</b><span id="todaySales">Today: ₹0</span></header>
+<div class="main">
+<div class="left">
+<div class="tabs">
+<button class="active" onclick="showTab('bill',this)">Billing</button>
+<button onclick="showTab('menu',this)">📝 Menu Edit</button>
+<button onclick="showTab('columns',this)">📂 Columns Edit</button>
+<button onclick="showTab('printer',this)">🖨️ Printer</button>
+<button onclick="showTab('settings',this)">⚙️ Settings</button>
+<button onclick="showTab('report',this)">Reports</button>
+</div>
+
+<div id="tab-bill">
+<input id="search" placeholder="🔍 Search product..." oninput="renderProducts()">
+<div class="col-tabs" id="colTabs"></div>
+<div style="display:flex;gap:6px">
+<button onclick="filterVeg('all')" style="background:#0f172a;color:#fff">All</button>
+<button onclick="filterVeg('veg')" style="background:#dcfce7">🟢 Veg Only</button>
+<button onclick="filterVeg('nonveg')" style="background:#fee2e2">🔴 Non-Veg Only</button>
+</div>
+<div id="productList"></div>
+</div>
+
+<div id="tab-menu" class="hidden">
+<h3>➕ Add / Edit Menu</h3>
+<input id="pName" placeholder="Product Name">
+<input id="pPrice" type="number" placeholder="Price ₹">
+<input id="pStock" type="number" placeholder="Stock Qty">
+<input id="pBarcode" placeholder="Barcode">
+<select id="pCategory"></select>
+<div style="display:flex;gap:8px">
+<label style="flex:1;background:#dcfce7;padding:10px;border-radius:8px;text-align:center"><input type="radio" name="pVeg" value="veg" checked style="width:auto"> 🟢 VEG</label>
+<label style="flex:1;background:#fee2e2;padding:10px;border-radius:8px;text-align:center"><input type="radio" name="pVeg" value="nonveg" style="width:auto"> 🔴 NON-VEG</label>
+<label style="flex:1;background:#e0e7ff;padding:10px;border-radius:8px;text-align:center"><input type="radio" name="pVeg" value="drink" style="width:auto"> 🥤 DRINK</label>
+</div>
+<input id="pGst" type="number" value="5">
+<input type="hidden" id="editId" value="">
+<button class="btn-green" id="saveBtn" onclick="saveProduct()">Save Product</button>
+<button class="btn-red" id="cancelBtn" style="display:none;width:100%;margin-top:6px" onclick="cancelEdit()">Cancel Edit</button>
+<div id="editInfo" class="edit-box hidden"><h3>✏️ Editing: <span id="editingName"></span></h3></div>
+<h3 style="margin-top:14px">📋 All Menu (<span id="menuCount">0</span>)</h3>
+<div id="menuList"></div>
+</div>
+
+<div id="tab-columns" class="hidden">
+<h3>📂 Columns Edit</h3>
+<input id="newColName" placeholder="Kotha Column - Ex: Starters">
+<button class="btn-green" onclick="addColumn()">+ Add Column</button>
+<div id="colList" style="margin-top:12px"></div>
+</div>
+
+<div id="tab-printer" class="hidden">
+<h3>🖨️ Printer - USB + Bluetooth</h3>
+<div class="printer-box"><h4>USB Printer</h4><button class="btn-blue" style="width:100%" onclick="connectUSB()">🔗 Connect USB</button><p id="usbStatus">● Not Connected</p></div>
+<div class="printer-box"><h4>Bluetooth Printer</h4><button class="btn-orange" style="width:100%" onclick="connectBT()">🔗 Connect Bluetooth</button><p id="btStatus">● Not Connected</p></div>
+<div class="printer-box"><select id="paperSize"><option value="80">80mm</option><option value="58">58mm</option><option value="a4">A4</option></select><select id="printerType"><option value="usb">USB</option><option value="bluetooth">Bluetooth</option><option value="normal">Normal</option></select><button class="btn-dark" onclick="testPrint()">Test Print</button></div>
+</div>
+
+<div id="tab-settings" class="hidden">
+<h3>⚙️ Shop & Auto Message Settings</h3>
+<label>Shop Name</label><input id="shopName" value="GOWTHAM STORE" oninput="saveSettings()">
+<label>Shop Address</label><input id="shopAddr" value="Nellore, AP" oninput="saveSettings()">
+<label>Shop Phone</label><input id="shopPhone" value="Ph: 90000 00000" oninput="saveSettings()">
+<div class="owner-box">
+<h4>👑 Owner Notification</h4>
+<label>Owner Number</label><input id="ownerPhone" value="6303033677" maxlength="10" oninput="saveSettings()">
+<label><input type="checkbox" id="ownerNotify" checked style="width:auto" onchange="saveSettings()"> ✅ Bill ayyaka owner ki auto message</label>
+</div>
+<div class="wa-box">
+<h4>📲 Customer Auto Message</h4>
+<label><input type="checkbox" id="custNotify" checked style="width:auto" onchange="saveSettings()"> ✅ Bill ayyaka customer ki kuda auto WhatsApp bill</label>
+</div>
+<button class="btn-green" onclick="saveSettings()">💾 Save Settings</button>
+<button class="btn-dark" onclick="testOwnerMsg()">📲 Test Owner Message</button>
+</div>
+
+<div id="tab-report" class="hidden"><h3>Reports</h3><p id="reportText"></p><div id="salesList"></div><button class="btn-red" onclick="clearAll()">Clear All Data</button></div>
+</div>
+
+<div class="right">
+<h3>🧾 Current Bill</h3>
+<input id="custName" placeholder="Customer Name">
+<input id="custPhone" placeholder="📱 Customer Phone - 10 digits" type="tel" maxlength="10">
+<div style="display:flex;gap:6px"><select id="orderType"><option>Dine-In</option><option>Parcel</option><option>Home Delivery</option></select><select id="discount"><option value="0">No Discount</option><option value="5">Discount 5%</option><option value="10">Discount 10%</option><option value="20">Discount 20%</option></select></div>
+<table><thead><tr><th>Item</th><th>Qty</th><th>Amt</th><th></th></tr></thead><tbody id="cart"></tbody></table>
+<div style="display:flex;gap:6px;margin-top:8px"><select id="payMode"><option>Cash</option><option>UPI</option><option>Card</option></select><select id="gstMode"><option value="5">GST 5%</option><option value="12">GST 12%</option><option value="18">GST 18%</option><option value="0">No GST</option></select></div>
+<div class="total" style="font-size:15px"><span>Subtotal</span><span id="sub">₹0</span></div>
+<div class="total" style="font-size:15px"><span>Discount</span><span id="discAmt">₹0</span></div>
+<div class="total" style="font-size:15px"><span>GST</span><span id="gstAmt">₹0</span></div>
+<div class="total"><span>Total</span><span id="grand">₹0</span></div>
+
+<div class="auto-box">
+<b>🤖 AUTO - Bill Complete Ayyaka:</b><br>
+✅ 🖨️ Print &nbsp; ✅ 📲 Customer ki WhatsApp &nbsp; ✅ 👑 Owner ki WhatsApp<br>
+<small>Owner: <b id="ownerDisplay">6303033677</b> | Customer: <span id="custDisplay">Enter Phone</span></small>
+</div>
+
+<div class="printer-box"><b>🖨️ Printer: </b><span id="miniStatus">Not Connected</span><br><button class="btn-blue" style="margin-top:6px" onclick="connectUSB()">USB</button><button class="btn-orange" style="margin-top:6px" onclick="connectBT()">Bluetooth</button><button style="background:#0f172a;color:#fff;margin-top:6px" onclick="testPrint()">Test</button></div>
+
+<button class="btn-green" style="font-size:16px;padding:14px" onclick="checkout()">💳 PAY & PRINT + SEND TO CUSTOMER & OWNER</button>
+
+<div class="wa-box">
+<h4>📲 Manual Send</h4>
+<button class="btn-wa" onclick="sendBillWhatsApp()">📲 Customer ki Matrame Pampu</button>
+<button style="background:#f59e0b;color:#fff;width:100%;margin-top:6px" onclick="sendOwnerOnly()">👑 Owner ki Matrame Pampu</button>
+<button style="background:#fff;border:1px solid #ddd;width:100%;margin-top:6px" onclick="copyBill()">📋 Copy Bill Text</button>
+<p id="waStatus" style="font-size:12px;color:green"></p>
+</div>
+
+<button class="btn-blue" style="width:100%;margin-top:6px" onclick="newBill()">New Bill</button>
+<div id="billPrint"></div>
+</div>
+</div>
+<script src="script.js"></script>
+</body>
+</html>
