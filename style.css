@@ -1,19 +1,25 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
-body{background:#f1f5f9}
-header{background:#0f172a;color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
-header b{font-size:19px} header span{background:#22c55e;padding:5px 10px;border-radius:20px;font-size:12px}
+body{background:linear-gradient(135deg,#f1f5f9,#e0f2fe);min-height:100vh}
+header{background:linear-gradient(90deg,#0f172a,#1e293b);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;box-shadow:0 4px 20px rgba(0,0,0,.2);animation:slideDown .5s}
+@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pop{0%{transform:scale(.9)}100%{transform:scale(1)}}
 .main{display:flex;gap:12px;padding:12px;flex-wrap:wrap}
-.left{flex:2;background:#fff;border-radius:12px;padding:14px;min-width:320px}
-.right{flex:1;background:#fff;border-radius:12px;padding:14px;min-width:300px}
-input,select{width:100%;padding:10px;margin:5px 0;border:1px solid #ddd;border-radius:8px}
-button{padding:9px 12px;border:0;border-radius:8px;cursor:pointer;font-weight:bold}
-.btn-green{background:#22c55e;color:#fff;width:100%;margin-top:8px}
+.left{flex:2;background:#fff;border-radius:16px;padding:14px;min-width:320px;box-shadow:0 4px 20px rgba(0,0,0,.08);animation:fadeIn .4s}
+.right{flex:1;background:#fff;border-radius:16px;padding:14px;min-width:300px;box-shadow:0 4px 20px rgba(0,0,0,.08);animation:fadeIn .6s}
+input,select{width:100%;padding:11px;margin:5px 0;border:1.5px solid #ddd;border-radius:10px;transition:.2s}
+input:focus{border-color:#2563eb;outline:none;box-shadow:0 0 0 3px #dbeafe}
+button{padding:9px 12px;border:0;border-radius:10px;cursor:pointer;font-weight:bold;transition:.2s}
+button:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.15)}
+button:active{transform:scale(.97)}
+.btn-green{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;width:100%;margin-top:8px}
 .btn-blue{background:#2563eb;color:#fff}
 .btn-orange{background:#f97316;color:#fff}
 .btn-red{background:#ef4444;color:#fff}
 .btn-dark{background:#0f172a;color:#fff;width:100%;margin-top:6px}
 .btn-wa{background:#25D366;color:#fff;width:100%;margin-top:8px;font-size:15px;padding:12px}
-.prod{display:flex;justify-content:space-between;align-items:center;border:1px solid #eee;padding:10px;border-radius:10px;margin:6px 0}
+.prod{display:flex;justify-content:space-between;align-items:center;border:1px solid #eee;padding:10px;border-radius:12px;margin:6px 0;animation:fadeIn .3s}
+.prod:hover{background:#f8fafc;border-color:#cbd5e1}
 .prod b{font-size:15px} .prod small{color:#666}
 table{width:100%;border-collapse:collapse;margin-top:8px}
 th,td{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
@@ -34,4 +40,10 @@ th,td{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
 .veg-dot i{width:7px;height:7px;background:green;border-radius:50%;display:block}
 .nonveg-dot i{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #b91c1c;display:block}
 .auto-box{background:#ecfdf5;border:2px solid #22c55e;padding:10px;border-radius:10px;margin-top:10px}
+.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#2563eb);display:flex;align-items:center;justify-content:center;z-index:999}
+.login-card{background:#fff;padding:28px;border-radius:20px;width:90%;max-width:360px;text-align:center;animation:pop .4s;box-shadow:0 20px 40px rgba(0,0,0,.3)}
+.login-card .logo{font-size:60px;animation:pop .6s}
+.login-card h2{margin:6px 0}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal-card{background:#fff;padding:22px;border-radius:16px;width:90%;max-width:320px;text-align:center;animation:pop .3s}
 @media print{ @page{size:80mm auto;margin:0} body *{visibility:hidden} #billPrint,#billPrint *{visibility:visible} #billPrint{position:absolute;top:0;left:0;width:80mm;font-family:monospace} }
