@@ -7,21 +7,19 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <header><b><span class="float-logo">🧇</span> VINTAGE WAFFLE</b><span id="todaySales">Today: ₹0</span></header>
 <div class="main">
 <div class="left">
 <div class="tabs">
 <button class="active" onclick="showTab('bill',this)">Billing</button>
-<button onclick="showTab('menu',this)">📝 Menu Edit</button>
-<button onclick="showTab('columns',this)">📂 Columns</button>
-<button onclick="showTab('customers',this)">👥 Customers</button>
-<button onclick="showTab('printer',this)">🖨️ Printer</button>
-<button onclick="showTab('settings',this)">⚙️ Settings</button>
+<button onclick="showTab('menu',this)">Menu Edit</button>
+<button onclick="showTab('columns',this)">Columns</button>
+<button onclick="showTab('customers',this)">Customers</button>
+<button onclick="showTab('printer',this)">Printer</button>
+<button onclick="showTab('settings',this)">Settings</button>
 <button onclick="showTab('report',this)">Reports</button>
-<button onclick="showTab('messages',this)" style="background:#7c3aed;color:#fff">💬 Messages</button>
+<button onclick="showTab('messages',this)" style="background:#7c3aed;color:#fff">Messages</button>
 </div>
-
 <div id="tab-bill">
 <div class="stat-box">
 <div class="stat-card">Today Sale<br><b id="statToday">₹0</b></div>
@@ -29,131 +27,121 @@
 <div class="stat-card">Customers<br><b id="statCust">0</b></div>
 </div>
 <div id="lowStockBox"></div>
-<input id="search" placeholder="🔍 Search product..." oninput="renderProducts()">
+<input id="search" placeholder="Search product..." oninput="renderProducts()">
 <div class="col-tabs" id="colTabs"></div>
 <div style="display:flex;gap:6px">
 <button onclick="filterVeg('all')" style="background:#0f172a;color:#fff">All</button>
-<button onclick="filterVeg('veg')" style="background:#dcfce7">🟢 Veg Only</button>
-<button onclick="filterVeg('nonveg')" style="background:#fee2e2">🔴 Non-Veg Only</button>
+<button onclick="filterVeg('veg')" style="background:#dcfce7">Veg Only</button>
+<button onclick="filterVeg('nonveg')" style="background:#fee2e2">Non-Veg Only</button>
 </div>
 <div id="productList"></div>
 </div>
-
 <div id="tab-menu" class="hidden">
-<h3>➕ Add / Edit Menu</h3>
+<h3>Add / Edit Menu</h3>
 <input id="pName" placeholder="Product Name">
-<input id="pPrice" type="number" placeholder="Price ₹">
+<input id="pPrice" type="number" placeholder="Price Rs">
 <input id="pStock" type="number" placeholder="Stock Qty">
 <input id="pBarcode" placeholder="Barcode">
 <select id="pCategory"></select>
 <div style="display:flex;gap:8px">
-<label style="flex:1;background:#dcfce7;padding:10px;border-radius:8px;text-align:center"><input type="radio" name="pVeg" value="veg" checked style="width:auto"> 🟢 VEG</label>
-<label style="flex:1;background:#fee2e2;padding:10px;border-radius:8px;text-align:center"><input type="radio" name="pVeg" value="nonveg" style="width:auto"> 🔴 NON-VEG</label>
-<label style="flex:1;background:#e0e7ff;padding:10px;border-radius:8px;text-align:center"><input type="radio" name="pVeg" value="drink" style="width:auto"> 🥤 DRINK</label>
+<label style="flex:1;background:#dcfce7;padding:10px;border-radius:8px;text-align:center"><input type="radio" name="pVeg" value="veg" checked style="width:auto"> VEG</label>
+<label style="flex:1;background:#fee2e2;padding:10px;border-radius:8px;text-align:center"><input type="radio" name="pVeg" value="nonveg" style="width:auto"> NON-VEG</label>
+<label style="flex:1;background:#e0e7ff;padding:10px;border-radius:8px;text-align:center"><input type="radio" name="pVeg" value="drink" style="width:auto"> DRINK</label>
 </div>
 <input id="pGst" type="number" value="5">
 <input type="hidden" id="editId" value="">
 <button class="btn-green" id="saveBtn" onclick="saveProduct()">Save Product</button>
 <button class="btn-red" id="cancelBtn" style="display:none;width:100%;margin-top:6px" onclick="cancelEdit()">Cancel Edit</button>
-<div id="editInfo" class="edit-box hidden"><h3>✏️ Editing: <span id="editingName"></span></h3></div>
-<h3 style="margin-top:14px">📋 All Menu (<span id="menuCount">0</span>)</h3>
+<div id="editInfo" class="edit-box hidden"><h3>Editing: <span id="editingName"></span></h3></div>
+<h3 style="margin-top:14px">All Menu (<span id="menuCount">0</span>)</h3>
 <div id="menuList"></div>
 </div>
-
 <div id="tab-columns" class="hidden">
-<h3>📂 Columns Edit</h3>
+<h3>Columns Edit</h3>
 <input id="newColName" placeholder="New Column - Ex: Starters">
 <button class="btn-green" onclick="addColumn()">+ Add Column</button>
 <div id="colList" style="margin-top:12px"></div>
 </div>
-
 <div id="tab-customers" class="hidden">
-<h3>👥 Customer Notepad - Auto Saved</h3>
+<h3>Customer Notepad - Auto Saved</h3>
 <p>Total Customers: <b id="custCount">0</b></p>
-<button class="btn-green" onclick="downloadNotepad()">📄 Download Notepad (.txt)</button>
-<button class="btn-blue" onclick="copyCustomers()">📋 Copy All</button>
-<button class="btn-red" onclick="clearCustomers()">🗑️ Clear Customers</button>
+<button class="btn-green" onclick="downloadNotepad()">Download Notepad (.txt)</button>
+<button class="btn-blue" onclick="copyCustomers()">Copy All</button>
+<button class="btn-red" onclick="clearCustomers()">Clear Customers</button>
 <div id="custList" style="margin-top:12px"></div>
 </div>
-
 <div id="tab-printer" class="hidden">
-<h3>🖨️ Printer - USB + Bluetooth</h3>
-<div class="printer-box"><h4>USB Printer</h4><button class="btn-blue" style="width:100%" onclick="connectUSB()">🔗 Connect USB</button><p id="usbStatus">● Not Connected</p></div>
-<div class="printer-box"><h4>Bluetooth Printer</h4><button class="btn-orange" style="width:100%" onclick="connectBT()">🔗 Connect Bluetooth</button><p id="btStatus">● Not Connected</p></div>
+<h3>Printer - USB + Bluetooth</h3>
+<div class="printer-box"><h4>USB Printer</h4><button class="btn-blue" style="width:100%" onclick="connectUSB()">Connect USB</button><p id="usbStatus">Not Connected</p></div>
+<div class="printer-box"><h4>Bluetooth Printer</h4><button class="btn-orange" style="width:100%" onclick="connectBT()">Connect Bluetooth</button><p id="btStatus">Not Connected</p></div>
 <div class="printer-box"><button class="btn-dark" onclick="testPrint()">Test Print</button></div>
 </div>
-
 <div id="tab-settings" class="hidden">
-<h3>⚙️ Shop Settings</h3>
+<h3>Shop Settings</h3>
 <label>Shop Name</label><input id="shopName" value="GOWTHAM STORE">
 <label>Shop Address</label><input id="shopAddr" value="Nellore, AP">
 <label>Shop Phone</label><input id="shopPhone" value="Ph: 90000 00000">
 <div class="owner-box">
-<h4>👑 Owner Notification</h4>
+<h4>Owner Notification</h4>
 <label>Owner Number</label><input id="ownerPhone" value="6303033677" maxlength="10">
-<label><input type="checkbox" id="ownerNotify" checked style="width:auto"> ✅ After Bill Send Owner</label><br>
-<label><input type="checkbox" id="custNotify" checked style="width:auto"> ✅ After Bill Send Customer</label>
+<label><input type="checkbox" id="ownerNotify" checked style="width:auto"> After Bill Send Owner</label><br>
+<label><input type="checkbox" id="custNotify" checked style="width:auto"> After Bill Send Customer</label>
 </div>
-<button class="btn-green" onclick="saveSettings()">💾 Save Settings</button>
-<button class="btn-dark" onclick="testOwnerMsg()">📲 Test Owner Message</button>
+<button class="btn-green" onclick="saveSettings()">Save Settings</button>
+<button class="btn-dark" onclick="testOwnerMsg()">Test Owner Message</button>
 </div>
-
 <div id="tab-report" class="hidden">
 <h3>Reports</h3><p id="reportText"></p><div id="salesList"></div>
-<button class="btn-red" onclick="deleteTodaySale()">🗑️ Delete Today Sale</button>
-<button class="btn-red" onclick="clearAllData()" style="margin-top:6px">🗑️ Clear All Data</button>
+<button class="btn-red" onclick="deleteTodaySale()">Delete Today Sale</button>
+<button class="btn-red" onclick="clearAllData()" style="margin-top:6px">Clear All Data</button>
 </div>
-
 <div id="tab-messages" class="hidden">
-<h3>💬 Message Sending - Separate Column</h3>
-<p>Send SMS / WhatsApp to anyone. No need to go to Billing.</p>
+<h3>Message Sending - Separate Column</h3>
+<p>Send SMS / WhatsApp to anyone.</p>
 <div class="msg-box">
-<h4>📲 1. Send To One Person</h4>
+<h4>1. Send To One Person</h4>
 <label>Phone Number - 10 digits</label>
 <input id="msgPhone" type="tel" maxlength="10" placeholder="Enter Phone - Ex: 6303033677">
 <label>Select Template</label>
 <select id="msgTemplate" onchange="fillTemplate()">
-<option value="custom">✍️ Custom Message - Type Below</option>
-<option value="offer">🎉 Offer Message</option>
-<option value="thankyou">🙏 Thank You Message</option>
-<option value="festival">🎊 Festival Offer</option>
-<option value="feedback">⭐ Feedback Message</option>
-<option value="newitem">🆕 New Item Message</option>
+<option value="custom">Custom Message - Type Below</option>
+<option value="offer">Offer Message</option>
+<option value="thankyou">Thank You Message</option>
+<option value="festival">Festival Offer</option>
+<option value="feedback">Feedback Message</option>
+<option value="newitem">New Item Message</option>
 </select>
 <label>Message</label>
 <textarea id="msgText" rows="4" placeholder="Type your message here..."></textarea>
 <div style="display:flex;gap:6px">
-<button class="btn-wa" onclick="sendSingleMessage('sms')">📩 Send SMS</button>
-<button class="btn-purple" onclick="sendSingleMessage('whatsapp')">💬 Send WhatsApp</button>
+<button class="btn-wa" onclick="sendSingleMessage('sms')">Send SMS</button>
+<button class="btn-purple" onclick="sendSingleMessage('whatsapp')">Send WhatsApp</button>
 </div>
 </div>
 <div class="msg-box">
-<h4>👑 2. Send To Owner</h4>
+<h4>2. Send To Owner</h4>
 <p>Owner: <b>6303033677</b></p>
-<textarea id="ownerMsgText" rows="2" placeholder="Ex: Today Sale ₹5000, 20 Bills Done"></textarea>
-<button class="btn-dark" onclick="sendToOwnerMsg()">👑 Send To Owner</button>
+<textarea id="ownerMsgText" rows="2" placeholder="Ex: Today Sale Rs 5000, 20 Bills Done"></textarea>
+<button class="btn-dark" onclick="sendToOwnerMsg()">Send To Owner</button>
 </div>
 <div class="msg-box">
-<h4>📢 3. Bulk Message - Send To All Customers</h4>
+<h4>3. Bulk Message - Send To All Customers</h4>
 <p>Total Customers: <b id="bulkCount">0</b></p>
-<textarea id="bulkMsgText" rows="3" placeholder="Ex: 🎉 Today Special Offer - Buy 1 Get 1 Free on Waffle! Visit VINTAGE WAFFLE"></textarea>
-<button class="btn-purple" onclick="sendBulkMessage()">📢 Send To All Customers</button>
-<p><small>Note: It will open SMS/WhatsApp one by one for each customer.</small></p>
+<textarea id="bulkMsgText" rows="3" placeholder="Ex: Today Special Offer - Buy 1 Get 1 Free on Waffle! Visit VINTAGE WAFFLE"></textarea>
+<button class="btn-purple" onclick="sendBulkMessage()">Send To All Customers</button>
 </div>
 <div class="msg-box">
-<h4>📜 Message History</h4>
+<h4>Message History</h4>
 <p id="msgHistoryCount">No messages sent yet</p>
 <div id="msgHistory"></div>
-<button class="btn-red" onclick="clearMsgHistory()">🗑️ Clear History</button>
+<button class="btn-red" onclick="clearMsgHistory()">Clear History</button>
 </div>
 </div>
-
 </div>
-
 <div class="right">
-<h3>🧾 Current Bill</h3>
+<h3>Current Bill</h3>
 <input id="custName" placeholder="Customer Name">
-<input id="custPhone" placeholder="📱 Customer Phone - 10 digits" type="tel" maxlength="10">
+<input id="custPhone" placeholder="Customer Phone - 10 digits" type="tel" maxlength="10">
 <div style="display:flex;gap:6px"><select id="orderType"><option>Dine-In</option><option>Parcel</option><option>Home Delivery</option></select><select id="discount"><option value="0">No Discount</option><option value="5">Discount 5%</option><option value="10">Discount 10%</option><option value="20">Discount 20%</option></select></div>
 <table><thead><tr><th>Item</th><th>Qty</th><th>Amt</th><th></th></tr></thead><tbody id="cart"></tbody></table>
 <div style="display:flex;gap:6px;margin-top:8px"><select id="payMode"><option>Cash</option><option>UPI</option><option>Card</option></select><select id="gstMode"><option value="5">GST 5%</option><option value="12">GST 12%</option><option value="18">GST 18%</option><option value="0">No GST</option></select></div>
@@ -161,13 +149,13 @@
 <div class="total" style="font-size:15px"><span>Discount</span><span id="discAmt">₹0</span></div>
 <div class="total" style="font-size:15px"><span>GST</span><span id="gstAmt">₹0</span></div>
 <div class="total"><span>Total</span><span id="grand">₹0</span></div>
-<div class="auto-box"><b>🤖 AUTO:</b><br>✅ 🖨️ Print &nbsp; ✅ 📲 Send Customer &nbsp; ✅ 👑 Send Owner<br><small>Owner: <b id="ownerDisplay">6303033677</b> | Customer: <span id="custDisplay">Enter Phone</span></small></div>
-<button class="btn-green" style="font-size:16px;padding:14px" onclick="checkout()">💳 PAY & PRINT + SEND</button>
+<div class="auto-box"><b>AUTO:</b><br>Print, Send Customer, Send Owner<br><small>Owner: <b id="ownerDisplay">6303033677</b> | Customer: <span id="custDisplay">Enter Phone</span></small></div>
+<button class="btn-green" style="font-size:16px;padding:14px" onclick="checkout()">PAY & PRINT + SEND</button>
 <div class="wa-box">
-<h4>📲 Manual Send</h4>
+<h4>Manual Send</h4>
 <button class="btn-wa" onclick="sendBillWhatsApp()">Send Only Customer</button>
 <button style="background:#f59e0b;color:#fff;width:100%;margin-top:6px" onclick="sendOwnerOnly()">Send Only Owner</button>
-<button style="background:#fff;border:1px solid #ddd;width:100%;margin-top:6px" onclick="copyBill()">📋 Copy Bill Text</button>
+<button style="background:#fff;border:1px solid #ddd;width:100%;margin-top:6px" onclick="copyBill()">Copy Bill Text</button>
 </div>
 <button class="btn-blue" style="width:100%;margin-top:6px" onclick="newBill()">New Bill</button>
 <div id="billPrint"></div>
