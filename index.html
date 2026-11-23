@@ -8,54 +8,7 @@
 </head>
 <body>
 
-<!-- LOGIN SCREEN - 2 TYPES -->
-<div id="loginScreen" class="login-screen">
-  <div class="login-card">
-    <div class="logo">🧇</div>
-    <h2>VINTAGE WAFFLE</h2>
-    <div style="display:flex;gap:6px;margin:10px 0">
-      <button id="btnStaffTab" class="btn-blue" style="flex:1" onclick="showLoginTab('staff')">🍽️ Restaurant Login</button>
-      <button id="btnAdminTab" class="btn-dark" style="flex:1" onclick="showLoginTab('admin')">👑 Admin Login</button>
-    </div>
-
-    <div id="staffLoginBox">
-      <p>Staff - Only Billing</p>
-      <input id="staffName" placeholder="Staff Name - Ex: Gowtham">
-      <input id="staffMobile" type="tel" maxlength="10" placeholder="Staff Mobile - 10 digits">
-      <button class="btn-green" onclick="staffLogin()">🍽️ Open Billing</button>
-    </div>
-
-    <div id="adminLoginBox" class="hidden">
-      <p>Owner Only - Full Control</p>
-      <input id="loginMobile" type="tel" maxlength="10" placeholder="Owner Mobile">
-      <input id="loginPin" type="password" maxlength="4" placeholder="Owner PIN">
-      <button class="btn-green" onclick="adminLogin()">🔓 Admin Login</button>
-      <small id="firstTimeNote">First time? Create PIN below</small>
-      <div id="createPinBox" class="hidden" style="margin-top:10px;border-top:1px solid #ddd;padding-top:10px">
-        <input id="newOwnerPin" type="password" maxlength="4" placeholder="Create New 4-Digit PIN">
-        <button class="btn-blue" onclick="createFirstPin()">Create PIN</button>
-      </div>
-    </div>
-    <p id="loginError" style="color:red"></p>
-  </div>
-</div>
-
-<!-- PIN MODAL -->
-<div id="pinModal" class="modal hidden">
-  <div class="modal-card">
-    <h3>🔒 Owner PIN</h3>
-    <p id="pinModalText">Enter PIN to Continue</p>
-    <input id="pinInput" type="password" maxlength="4" placeholder="Enter Old PIN / PIN">
-    <div id="changePinBox" class="hidden">
-      <input id="newPinInput" type="password" maxlength="4" placeholder="New PIN - 4 Digits">
-    </div>
-    <button class="btn-green" onclick="checkPin()">Unlock / Save</button>
-    <button class="btn-red" onclick="closePin()">Cancel</button>
-    <p id="pinError" style="color:red"></p>
-  </div>
-</div>
-
-<header><b id="headerTitle">VINTAGE WAFFLE</b><span id="todaySales">Today: ₹0</span><button onclick="ownerLogout()" style="background:#ef4444;color:#fff;padding:6px 12px">Logout</button></header>
+<header><b>VINTAGE WAFFLE</b><span id="todaySales">Today: ₹0</span></header>
 <div class="main">
 <div class="left">
 <div class="tabs">
@@ -112,7 +65,7 @@
 <p>Total Customers: <b id="custCount">0</b></p>
 <button class="btn-green" onclick="downloadNotepad()">📄 Download Notepad (.txt)</button>
 <button class="btn-blue" onclick="copyCustomers()">📋 Copy All</button>
-<button class="btn-red" onclick="askPin('clearCustomers')">🗑️ Clear Customers (PIN Lock)</button>
+<button class="btn-red" onclick="clearCustomers()">🗑️ Clear Customers</button>
 <div id="custList" style="margin-top:12px"></div>
 </div>
 
@@ -124,16 +77,13 @@
 </div>
 
 <div id="tab-settings" class="hidden">
-<h3>⚙️ Shop & Owner Settings</h3>
+<h3>⚙️ Shop Settings</h3>
 <label>Shop Name</label><input id="shopName" value="GOWTHAM STORE">
 <label>Shop Address</label><input id="shopAddr" value="Nellore, AP">
 <label>Shop Phone</label><input id="shopPhone" value="Ph: 90000 00000">
 <div class="owner-box">
-<h4>👑 Owner Only - PIN Protected</h4>
-<label>Owner Mobile (Login Number)</label><input id="ownerPhone" value="6303033677" maxlength="10">
-<p>PIN is hidden for security. Only owner can change it.</p>
-<button class="btn-dark" onclick="askPin('changePin')">🔒 Change Owner PIN</button>
-<br><br>
+<h4>👑 Owner Notification</h4>
+<label>Owner Number</label><input id="ownerPhone" value="6303033677" maxlength="10">
 <label><input type="checkbox" id="ownerNotify" checked style="width:auto"> ✅ After Bill Send Owner</label><br>
 <label><input type="checkbox" id="custNotify" checked style="width:auto"> ✅ After Bill Send Customer</label>
 </div>
@@ -143,8 +93,8 @@
 
 <div id="tab-report" class="hidden">
 <h3>Reports</h3><p id="reportText"></p><div id="salesList"></div>
-<button class="btn-red" onclick="askPin('deleteToday')">🗑️ Delete Today Sale (PIN Lock)</button>
-<button class="btn-red" onclick="askPin('clearAll')" style="margin-top:6px">🗑️ Clear All Data (PIN Lock)</button>
+<button class="btn-red" onclick="deleteTodaySale()">🗑️ Delete Today Sale</button>
+<button class="btn-red" onclick="clearAllData()" style="margin-top:6px">🗑️ Clear All Data</button>
 </div>
 </div>
 
@@ -170,19 +120,6 @@
 <button class="btn-blue" style="width:100%;margin-top:6px" onclick="newBill()">New Bill</button>
 <div id="billPrint"></div>
 </div>
-</div>
-  <div id="adminLoginBox" class="hidden">
-  <p>Owner Only - Full Control</p>
-  <input id="loginMobile" type="tel" maxlength="10" placeholder="Owner Mobile">
-  <input id="loginPin" type="password" maxlength="4" placeholder="Owner PIN">
-  <button class="btn-green" onclick="adminLogin()">🔓 Admin Login</button>
-  <small id="firstTimeNote">First time? Create PIN below</small>
-  <div id="createPinBox" class="hidden" style="margin-top:10px;border-top:1px solid #ddd;padding-top:10px">
-    <input id="newOwnerPin" type="password" maxlength="4" placeholder="Create New 4-Digit PIN">
-    <button class="btn-blue" onclick="createFirstPin()">Create PIN</button>
-  </div>
-  <!-- NEW - RESET BUTTON -->
-  <button style="background:none;color:#2563eb;text-decoration:underline;margin-top:8px;font-size:13px" onclick="resetPin()">Forgot PIN? Reset PIN</button>
 </div>
 <script src="script.js"></script>
 </body>
