@@ -3,17 +3,66 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VINTAGE WAFFLE</title>
+<title>VINTAGE WAFFLE - POS</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><b>VINTAGE WAFFLE</b><span id="todaySales">Today: ₹0</span></header>
+
+<!-- LOGIN SCREEN - 2 TYPES -->
+<div id="loginScreen" class="login-screen">
+  <div class="login-card">
+    <div class="logo">🧇</div>
+    <h2>VINTAGE WAFFLE</h2>
+    <div style="display:flex;gap:6px;margin:10px 0">
+      <button id="btnStaffTab" class="btn-blue" style="flex:1" onclick="showLoginTab('staff')">🍽️ Restaurant Login</button>
+      <button id="btnAdminTab" class="btn-dark" style="flex:1" onclick="showLoginTab('admin')">👑 Admin Login</button>
+    </div>
+
+    <div id="staffLoginBox">
+      <p>Staff - Only Billing</p>
+      <input id="staffName" placeholder="Staff Name - Ex: Gowtham">
+      <input id="staffMobile" type="tel" maxlength="10" placeholder="Staff Mobile - 10 digits">
+      <button class="btn-green" onclick="staffLogin()">🍽️ Open Billing</button>
+    </div>
+
+    <div id="adminLoginBox" class="hidden">
+      <p>Owner Only - Full Control</p>
+      <input id="loginMobile" type="tel" maxlength="10" placeholder="Owner Mobile">
+      <input id="loginPin" type="password" maxlength="4" placeholder="Owner PIN">
+      <button class="btn-green" onclick="adminLogin()">🔓 Admin Login</button>
+      <small id="firstTimeNote">First time? Create PIN below</small>
+      <div id="createPinBox" class="hidden" style="margin-top:10px;border-top:1px solid #ddd;padding-top:10px">
+        <input id="newOwnerPin" type="password" maxlength="4" placeholder="Create New 4-Digit PIN">
+        <button class="btn-blue" onclick="createFirstPin()">Create PIN</button>
+      </div>
+    </div>
+    <p id="loginError" style="color:red"></p>
+  </div>
+</div>
+
+<!-- PIN MODAL -->
+<div id="pinModal" class="modal hidden">
+  <div class="modal-card">
+    <h3>🔒 Owner PIN</h3>
+    <p id="pinModalText">Enter PIN to Continue</p>
+    <input id="pinInput" type="password" maxlength="4" placeholder="Enter Old PIN / PIN">
+    <div id="changePinBox" class="hidden">
+      <input id="newPinInput" type="password" maxlength="4" placeholder="New PIN - 4 Digits">
+    </div>
+    <button class="btn-green" onclick="checkPin()">Unlock / Save</button>
+    <button class="btn-red" onclick="closePin()">Cancel</button>
+    <p id="pinError" style="color:red"></p>
+  </div>
+</div>
+
+<header><b id="headerTitle">VINTAGE WAFFLE</b><span id="todaySales">Today: ₹0</span><button onclick="ownerLogout()" style="background:#ef4444;color:#fff;padding:6px 12px">Logout</button></header>
 <div class="main">
 <div class="left">
 <div class="tabs">
 <button class="active" onclick="showTab('bill',this)">Billing</button>
 <button onclick="showTab('menu',this)">📝 Menu Edit</button>
-<button onclick="showTab('columns',this)">📂 Columns Edit</button>
+<button onclick="showTab('columns',this)">📂 Columns</button>
+<button onclick="showTab('customers',this)">👥 Customers</button>
 <button onclick="showTab('printer',this)">🖨️ Printer</button>
 <button onclick="showTab('settings',this)">⚙️ Settings</button>
 <button onclick="showTab('report',this)">Reports</button>
@@ -53,37 +102,50 @@
 
 <div id="tab-columns" class="hidden">
 <h3>📂 Columns Edit</h3>
-<input id="newColName" placeholder="Kotha Column - Ex: Starters">
+<input id="newColName" placeholder="New Column - Ex: Starters">
 <button class="btn-green" onclick="addColumn()">+ Add Column</button>
 <div id="colList" style="margin-top:12px"></div>
+</div>
+
+<div id="tab-customers" class="hidden">
+<h3>👥 Customer Notepad - Auto Saved</h3>
+<p>Total Customers: <b id="custCount">0</b></p>
+<button class="btn-green" onclick="downloadNotepad()">📄 Download Notepad (.txt)</button>
+<button class="btn-blue" onclick="copyCustomers()">📋 Copy All</button>
+<button class="btn-red" onclick="askPin('clearCustomers')">🗑️ Clear Customers (PIN Lock)</button>
+<div id="custList" style="margin-top:12px"></div>
 </div>
 
 <div id="tab-printer" class="hidden">
 <h3>🖨️ Printer - USB + Bluetooth</h3>
 <div class="printer-box"><h4>USB Printer</h4><button class="btn-blue" style="width:100%" onclick="connectUSB()">🔗 Connect USB</button><p id="usbStatus">● Not Connected</p></div>
 <div class="printer-box"><h4>Bluetooth Printer</h4><button class="btn-orange" style="width:100%" onclick="connectBT()">🔗 Connect Bluetooth</button><p id="btStatus">● Not Connected</p></div>
-<div class="printer-box"><select id="paperSize"><option value="80">80mm</option><option value="58">58mm</option><option value="a4">A4</option></select><select id="printerType"><option value="usb">USB</option><option value="bluetooth">Bluetooth</option><option value="normal">Normal</option></select><button class="btn-dark" onclick="testPrint()">Test Print</button></div>
+<div class="printer-box"><button class="btn-dark" onclick="testPrint()">Test Print</button></div>
 </div>
 
 <div id="tab-settings" class="hidden">
-<h3>⚙️ Shop & Auto Message Settings</h3>
-<label>Shop Name</label><input id="shopName" value="GOWTHAM STORE" oninput="saveSettings()">
-<label>Shop Address</label><input id="shopAddr" value="Nellore, AP" oninput="saveSettings()">
-<label>Shop Phone</label><input id="shopPhone" value="Ph: 90000 00000" oninput="saveSettings()">
+<h3>⚙️ Shop & Owner Settings</h3>
+<label>Shop Name</label><input id="shopName" value="GOWTHAM STORE">
+<label>Shop Address</label><input id="shopAddr" value="Nellore, AP">
+<label>Shop Phone</label><input id="shopPhone" value="Ph: 90000 00000">
 <div class="owner-box">
-<h4>👑 Owner Notification</h4>
-<label>Owner Number</label><input id="ownerPhone" value="6303033677" maxlength="10" oninput="saveSettings()">
-<label><input type="checkbox" id="ownerNotify" checked style="width:auto" onchange="saveSettings()"> ✅  After Complte Bill Send Owner Through Whatsapp</label>
-</div>
-<div class="wa-box">
-<h4>📲 Customer Auto Message</h4>
-<label><input type="checkbox" id="custNotify" checked style="width:auto" onchange="saveSettings()"> ✅ After Complte Bill Send Customer Through Whatsapp</label>
+<h4>👑 Owner Only - PIN Protected</h4>
+<label>Owner Mobile (Login Number)</label><input id="ownerPhone" value="6303033677" maxlength="10">
+<p>PIN is hidden for security. Only owner can change it.</p>
+<button class="btn-dark" onclick="askPin('changePin')">🔒 Change Owner PIN</button>
+<br><br>
+<label><input type="checkbox" id="ownerNotify" checked style="width:auto"> ✅ After Bill Send Owner</label><br>
+<label><input type="checkbox" id="custNotify" checked style="width:auto"> ✅ After Bill Send Customer</label>
 </div>
 <button class="btn-green" onclick="saveSettings()">💾 Save Settings</button>
 <button class="btn-dark" onclick="testOwnerMsg()">📲 Test Owner Message</button>
 </div>
 
-<div id="tab-report" class="hidden"><h3>Reports</h3><p id="reportText"></p><div id="salesList"></div><button class="btn-red" onclick="clearAll()">Clear All Data</button></div>
+<div id="tab-report" class="hidden">
+<h3>Reports</h3><p id="reportText"></p><div id="salesList"></div>
+<button class="btn-red" onclick="askPin('deleteToday')">🗑️ Delete Today Sale (PIN Lock)</button>
+<button class="btn-red" onclick="askPin('clearAll')" style="margin-top:6px">🗑️ Clear All Data (PIN Lock)</button>
+</div>
 </div>
 
 <div class="right">
@@ -97,25 +159,14 @@
 <div class="total" style="font-size:15px"><span>Discount</span><span id="discAmt">₹0</span></div>
 <div class="total" style="font-size:15px"><span>GST</span><span id="gstAmt">₹0</span></div>
 <div class="total"><span>Total</span><span id="grand">₹0</span></div>
-
-<div class="auto-box">
-<b>🤖 AUTO - After Complite Billing:</b><br>
-✅ 🖨️ Print &nbsp; ✅ 📲 Send Customer WhatsApp &nbsp; ✅ 👑 Send Owner WhatsApp<br>
-<small>Owner: <b id="ownerDisplay">6303033677</b> | Customer: <span id="custDisplay">Enter Phone</span></small>
-</div>
-
-<div class="printer-box"><b>🖨️ Printer: </b><span id="miniStatus">Not Connected</span><br><button class="btn-blue" style="margin-top:6px" onclick="connectUSB()">USB</button><button class="btn-orange" style="margin-top:6px" onclick="connectBT()">Bluetooth</button><button style="background:#0f172a;color:#fff;margin-top:6px" onclick="testPrint()">Test</button></div>
-
-<button class="btn-green" style="font-size:16px;padding:14px" onclick="checkout()">💳 PAY & PRINT + SEND TO CUSTOMER & OWNER</button>
-
+<div class="auto-box"><b>🤖 AUTO:</b><br>✅ 🖨️ Print &nbsp; ✅ 📲 Send Customer &nbsp; ✅ 👑 Send Owner<br><small>Owner: <b id="ownerDisplay">6303033677</b> | Customer: <span id="custDisplay">Enter Phone</span></small></div>
+<button class="btn-green" style="font-size:16px;padding:14px" onclick="checkout()">💳 PAY & PRINT + SEND</button>
 <div class="wa-box">
 <h4>📲 Manual Send</h4>
-<button class="btn-wa" onclick="sendBillWhatsApp()">Send Message Onley Customer</button>
-<button style="background:#f59e0b;color:#fff;width:100%;margin-top:6px" onclick="sendOwnerOnly()">Send Message Onley Owner</button>
+<button class="btn-wa" onclick="sendBillWhatsApp()">Send Only Customer</button>
+<button style="background:#f59e0b;color:#fff;width:100%;margin-top:6px" onclick="sendOwnerOnly()">Send Only Owner</button>
 <button style="background:#fff;border:1px solid #ddd;width:100%;margin-top:6px" onclick="copyBill()">📋 Copy Bill Text</button>
-<p id="waStatus" style="font-size:12px;color:green"></p>
 </div>
-
 <button class="btn-blue" style="width:100%;margin-top:6px" onclick="newBill()">New Bill</button>
 <div id="billPrint"></div>
 </div>
