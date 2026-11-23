@@ -288,3 +288,38 @@ document.getElementById('gstMode')?.addEventListener('change', renderCart);
 document.getElementById('discount')?.addEventListener('change', renderCart);
 document.getElementById('custPhone')?.addEventListener('input', () => { document.getElementById('custDisplay').innerText = document.getElementById('custPhone').value || 'Enter Phone'; });
 checkLogin(); loadSettings(); renderProducts(); renderCart(); renderMenu(); renderColumns(); renderCustomers(); updateToday();
+// FORGOT PIN - RESET WITH OWNER MOBILE ONLY
+function resetPin() {
+  let mob = document.getElementById('loginMobile').value.trim();
+  if (mob !== settings.ownerPhone) {
+    return alert('Enter Correct Owner Mobile First. Only Owner can reset PIN.');
+  }
+  if (!confirm('Are you sure? Old PIN will be deleted. You will create a new PIN.')) return;
+  ownerPin = '';
+  localStorage.removeItem('pos_pin');
+  document.getElementById('createPinBox').classList.remove('hidden');
+  document.getElementById('firstTimeNote').innerText = 'PIN Reset Done. Create New PIN now.';
+  alert('PIN Reset Done! Now create a New PIN below.');
+}
+
+// FIXED ADMIN LOGIN - Shows correct error
+function adminLogin() {
+  let mob = document.getElementById('loginMobile').value.trim();
+  let pin = document.getElementById('loginPin').value.trim();
+  if (!ownerPin) {
+    document.getElementById('createPinBox').classList.remove('hidden');
+    return alert('No PIN yet. Please Create PIN first below.');
+  }
+  if (mob !== settings.ownerPhone) {
+    document.getElementById('loginError').innerText = 'Wrong Owner Mobile. Enter ' + settings.ownerPhone;
+    return;
+  }
+  if (pin !== ownerPin) {
+    document.getElementById('loginError').innerText = 'Wrong PIN. Click Forgot PIN to reset.';
+    return;
+  }
+  sessionStorage.setItem('pos_logged', 'yes');
+  sessionStorage.setItem('pos_role', 'admin');
+  document.getElementById('loginScreen').style.display = 'none';
+  applyRole();
+}
