@@ -40,10 +40,4 @@ th,td{padding:8px;border-bottom:1px solid #eee;text-align:left;font-size:14px}
 .veg-dot i{width:7px;height:7px;background:green;border-radius:50%;display:block}
 .nonveg-dot i{width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:7px solid #b91c1c;display:block}
 .auto-box{background:#ecfdf5;border:2px solid #22c55e;padding:10px;border-radius:10px;margin-top:10px}
-.login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0f172a,#2563eb);display:flex;align-items:center;justify-content:center;z-index:999}
-.login-card{background:#fff;padding:28px;border-radius:20px;width:90%;max-width:360px;text-align:center;animation:pop .4s;box-shadow:0 20px 40px rgba(0,0,0,.3)}
-.login-card .logo{font-size:60px;animation:pop .6s}
-.login-card h2{margin:6px 0}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:1000}
-.modal-card{background:#fff;padding:22px;border-radius:16px;width:90%;max-width:320px;text-align:center;animation:pop .3s}
 @media print{ @page{size:80mm auto;margin:0} body *{visibility:hidden} #billPrint,#billPrint *{visibility:visible} #billPrint{position:absolute;top:0;left:0;width:80mm;font-family:monospace} }
