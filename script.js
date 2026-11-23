@@ -1,4 +1,4 @@
-let columns = JSON.parse(localStorage.getItem('pos_columns') || '["All","Main Course","Starters","Biryani","Drinks","Meals","WAFFLE"]');
+let columns = JSON.parse(localStorage.getItem('pos_columns') || '["All","Main Course","Starters","Biryani","Drinks","Meals","Waffle"]');
 let products = JSON.parse(localStorage.getItem('pos_products') || '[]');
 if (products.length == 0) {
   products = [
@@ -10,8 +10,8 @@ if (products.length == 0) {
     { id: 6, name: 'Chicken 65', price: 200, stock: 15, barcode: '1006', gst: 5, cat: 'Starters', veg: 'nonveg' },
     { id: 7, name: 'Tea', price: 15, stock: 100, barcode: '1007', gst: 0, cat: 'Drinks', veg: 'drink' },
     { id: 8, name: 'Cool Drink', price: 40, stock: 40, barcode: '1008', gst: 18, cat: 'Drinks', veg: 'drink' },
-    { id: 9, name: 'Classic Waffle', price: 99, stock: 30, barcode: '1009', gst: 5, cat: 'WAFFLE', veg: 'veg' },
-    { id: 10, name: 'Chocolate Waffle', price: 129, stock: 30, barcode: '1010', gst: 5, cat: 'WAFFLE', veg: 'veg' },
+    { id: 9, name: 'Classic Waffle', price: 99, stock: 30, barcode: '1009', gst: 5, cat: 'Waffle', veg: 'veg' },
+    { id: 10, name: 'Chocolate Waffle', price: 129, stock: 30, barcode: '1010', gst: 5, cat: 'Waffle', veg: 'veg' },
   ]; save();
 }
 let cart = [];
@@ -34,11 +34,11 @@ function fillTemplate() {
   let t = document.getElementById('msgTemplate').value;
   let shop = settings.shopName;
   let msgs = {
-    'offer': `🎉 *OFFER - ${shop}*\nToday Special! Buy 1 Waffle Get 1 Free!\nVisit: ${settings.shopAddr}\nCall: ${settings.shopPhone}`,
-    'thankyou': `🙏 Thank You for visiting ${shop}!\nWe hope you enjoyed your food.\nVisit Again! - ${shop}`,
-    'festival': `🎊 *Festival Offer - ${shop}*\nSpecial Discount 20% on All Items Today!\nVisit: ${settings.shopAddr}`,
-    'feedback': `⭐ Hi! How was your food at ${shop}?\nPlease reply with your feedback.\nThank You! 🙏`,
-    'newitem': `🆕 *New Item in ${shop}*\nTry our New Chocolate Waffle - Only ₹129!\nVisit Today!`
+    'offer': `OFFER - ${shop}\nToday Special! Buy 1 Waffle Get 1 Free!\nVisit: ${settings.shopAddr}\nCall: ${settings.shopPhone}`,
+    'thankyou': `Thank You for visiting ${shop}!\nWe hope you enjoyed your food.\nVisit Again! - ${shop}`,
+    'festival': `Festival Offer - ${shop}\nSpecial Discount 20% on All Items Today!\nVisit: ${settings.shopAddr}`,
+    'feedback': `Hi! How was your food at ${shop}?\nPlease reply with your feedback.\nThank You!`,
+    'newitem': `New Item in ${shop}\nTry our New Chocolate Waffle - Only Rs 129!\nVisit Today!`
   };
   if (msgs[t]) document.getElementById('msgText').value = msgs[t];
   if (t === 'custom') document.getElementById('msgText').value = '';
@@ -68,7 +68,7 @@ function sendSingleMessage(mode) {
 }
 function sendToOwnerMsg() {
   let msg = document.getElementById('ownerMsgText').value.trim();
-  if (!msg) { let today = new Date().toDateString(); let sum = sales.filter(s => new Date(s.date).toDateString() == today).reduce((a,b)=>a+b.total,0); msg = `🔔 Today Sale Report - ${settings.shopName}\nToday Sale: ₹${sum}\nBills: ${sales.filter(s => new Date(s.date).toDateString() == today).length}\nCustomers: ${customers.length}`; document.getElementById('ownerMsgText').value = msg; }
+  if (!msg) { let today = new Date().toDateString(); let sum = sales.filter(s => new Date(s.date).toDateString() == today).reduce((a,b)=>a+b.total,0); msg = `Today Sale Report - ${settings.shopName}\nToday Sale: Rs ${sum}\nBills: ${sales.filter(s => new Date(s.date).toDateString() == today).length}\nCustomers: ${customers.length}`; document.getElementById('ownerMsgText').value = msg; }
   saveMsgHistory(settings.ownerPhone, msg, 'Owner');
   sendDirect(settings.ownerPhone, msg);
   alert('Sent to Owner');
@@ -99,13 +99,13 @@ function saveCustomerToNotepad(cust, phone, total, billNo) {
 function renderCustomers() {
   let el = document.getElementById('custList'); if (!el) return;
   document.getElementById('custCount').innerText = customers.length;
-  el.innerHTML = customers.map(c => `<div class="prod"><div><b>${c.name}</b> - ${c.phone}<br><small>${c.date} | Bill: ${c.billNo}</small></div><div style="display:flex;gap:5px"><button class="btn-wa" style="width:auto;padding:6px 10px" onclick="quickMsg('${c.phone}','${c.name}')">💬 Msg</button><b>₹${c.total}</b></div></div>`).join('') || '<p>No customers yet</p>';
+  el.innerHTML = customers.map(c => `<div class="prod"><div><b>${c.name}</b> - ${c.phone}<br><small>${c.date} | Bill: ${c.billNo}</small></div><div style="display:flex;gap:5px"><button class="btn-wa" style="width:auto;padding:6px 10px" onclick="quickMsg('${c.phone}','${c.name}')">Msg</button><b>Rs ${c.total}</b></div></div>`).join('') || '<p>No customers yet</p>';
   if(document.getElementById('bulkCount')) document.getElementById('bulkCount').innerText = customers.length;
 }
 function quickMsg(phone, name) {
   showTab('messages', document.querySelectorAll('.tabs button')[7]);
   document.getElementById('msgPhone').value = phone;
-  document.getElementById('msgText').value = `Hi ${name}, Thank You for visiting ${settings.shopName}! Visit Again! 🙏`;
+  document.getElementById('msgText').value = `Hi ${name}, Thank You for visiting ${settings.shopName}! Visit Again!`;
   window.scrollTo(0,0);
 }
 function getNotepadText() {
@@ -160,23 +160,23 @@ function renderColTabs() {
 function renderProducts() {
   renderColTabs(); let q = (document.getElementById('search')?.value || '').toLowerCase(); let html = '';
   products.filter(p => { if (activeCol != 'All' && p.cat != activeCol) return false; if (activeVeg != 'all' && p.veg != activeVeg) return false; if (q && !p.name.toLowerCase().includes(q) && !String(p.barcode).includes(q)) return false; return true; }).forEach(p => {
-    let icon = '🥤 ';
+    let icon = 'Drink ';
     if (p.veg == 'veg') icon = '<span class="veg-dot"><i></i></span>';
     if (p.veg == 'nonveg') icon = '<span class="nonveg-dot"><i></i></span>';
     let vegTxt = p.veg == 'veg' ? 'VEG' : p.veg == 'nonveg' ? 'NON-VEG' : 'DRINK';
-    let low = p.stock <= 5 ? ' 🔴 LOW!' : '';
-    html += `<div class="prod"><div>${icon}<b>${p.name}</b> <small>${vegTxt} | ${p.cat}</small><br><small>₹${p.price} | Stock: ${p.stock}${low}</small></div><button class="btn-blue" onclick="addToCart(${p.id})">+ Add</button></div>`;
+    let low = p.stock <= 5 ? ' LOW!' : '';
+    html += `<div class="prod"><div>${icon}<b>${p.name}</b> <small>${vegTxt} | ${p.cat}</small><br><small>Rs ${p.price} | Stock: ${p.stock}${low}</small></div><button class="btn-blue" onclick="addToCart(${p.id})">+ Add</button></div>`;
   });
   document.getElementById('productList').innerHTML = html || '<p style="padding:20px;text-align:center">No product in this column. Add in Menu Edit.</p>';
   let lowItems = products.filter(p => p.stock <= 5);
-  document.getElementById('lowStockBox').innerHTML = lowItems.length ? `<div class="low-stock">⚠️ Low Stock Alert: ${lowItems.map(p=>p.name+' ('+p.stock+')').join(', ')} - Please Refill!</div>` : '';
+  document.getElementById('lowStockBox').innerHTML = lowItems.length ? `<div class="low-stock">Low Stock Alert: ${lowItems.map(p=>p.name+' ('+p.stock+')').join(', ')} - Please Refill!</div>` : '';
   let today = new Date().toDateString(); let tSales = sales.filter(s => new Date(s.date).toDateString() == today);
-  document.getElementById('statToday').innerText = '₹' + tSales.reduce((a,b)=>a+b.total,0).toFixed(0);
+  document.getElementById('statToday').innerText = 'Rs ' + tSales.reduce((a,b)=>a+b.total,0).toFixed(0);
   document.getElementById('statBills').innerText = tSales.length;
   document.getElementById('statCust').innerText = customers.length;
 }
 function renderColumns() {
-  let html = ''; columns.forEach((c, i) => { html += `<div class="prod"><div><b>${c}</b><br><small>${products.filter(p => p.cat == c).length} items</small></div>${c == 'All' ? '<small>Default</small>' : `<div style="display:flex;gap:5px"><button class="btn-orange" onclick="editColumn(${i})">✏️ Edit</button><button class="btn-red" onclick="deleteColumn(${i})">🗑️</button></div>`}</div>`; });
+  let html = ''; columns.forEach((c, i) => { html += `<div class="prod"><div><b>${c}</b><br><small>${products.filter(p => p.cat == c).length} items</small></div>${c == 'All' ? '<small>Default</small>' : `<div style="display:flex;gap:5px"><button class="btn-orange" onclick="editColumn(${i})">Edit</button><button class="btn-red" onclick="deleteColumn(${i})">Delete</button></div>`}</div>`; });
   document.getElementById('colList').innerHTML = html;
   document.getElementById('pCategory').innerHTML = columns.filter(c => c != 'All').map(c => `<option>${c}</option>`).join('');
 }
@@ -184,14 +184,14 @@ function addColumn() { let n = document.getElementById('newColName').value.trim(
 function editColumn(i) { let nn = prompt('Change Column:', columns[i]); if (nn) { let old = columns[i]; columns[i] = nn.trim(); products.forEach(p => { if (p.cat == old) p.cat = nn.trim(); }); save(); renderColumns(); renderProducts(); } }
 function deleteColumn(i) { if (!confirm('Delete?')) return; let old = columns[i]; columns.splice(i, 1); products.forEach(p => { if (p.cat == old) p.cat = 'All'; }); save(); renderColumns(); renderProducts(); }
 function renderMenu() {
-  let html = ''; products.forEach(p => { let ic = p.veg == 'veg' ? '🟢' : p.veg == 'nonveg' ? '🔴' : '🥤'; html += `<div class="prod"><div>${ic} <b>${p.name}</b><br><small>${p.cat} | ₹${p.price} | Stock: ${p.stock}</small></div><div style="display:flex;gap:5px"><button class="btn-orange" onclick="editProduct(${p.id})">✏️ Edit</button><button class="btn-red" onclick="deleteProduct(${p.id})">🗑️</button></div></div>`; });
+  let html = ''; products.forEach(p => { let ic = p.veg == 'veg' ? 'VEG' : p.veg == 'nonveg' ? 'NON-VEG' : 'DRINK'; html += `<div class="prod"><div>${ic} <b>${p.name}</b><br><small>${p.cat} | Rs ${p.price} | Stock: ${p.stock}</small></div><div style="display:flex;gap:5px"><button class="btn-orange" onclick="editProduct(${p.id})">Edit</button><button class="btn-red" onclick="deleteProduct(${p.id})">Delete</button></div></div>`; });
   document.getElementById('menuList').innerHTML = html;
   document.getElementById('menuCount').innerText = products.length;
   renderColumns();
 }
 function saveProduct() {
   let name = document.getElementById('pName').value.trim(); let price = +document.getElementById('pPrice').value; let stock = +document.getElementById('pStock').value || 0; let barcode = document.getElementById('pBarcode').value || Date.now(); let cat = document.getElementById('pCategory').value || 'All'; let veg = document.querySelector('input[name="pVeg"]:checked').value; let gst = +document.getElementById('pGst').value || 0; let editId = document.getElementById('editId').value;
-  if (!name || !price) return alert('Name & Price required!');
+  if (!name || !price) return alert('Name and Price required!');
   if (editId) { let p = products.find(x => x.id == editId); if (p) { p.name = name; p.price = price; p.stock = stock; p.barcode = barcode; p.cat = cat; p.veg = veg; p.gst = gst; } alert('Updated!'); } else { products.push({ id: Date.now(), name, price, stock, barcode, cat, veg, gst }); alert('Added!'); }
   save(); cancelEdit(); renderProducts(); renderMenu();
 }
@@ -206,33 +206,33 @@ function editProduct(id) {
 function cancelEdit() { document.getElementById('pName').value = ''; document.getElementById('pPrice').value = ''; document.getElementById('pStock').value = ''; document.getElementById('pBarcode').value = ''; document.getElementById('pGst').value = '5'; document.getElementById('editId').value = ''; document.getElementById('editInfo').classList.add('hidden'); document.getElementById('saveBtn').innerText = 'Save Product'; document.getElementById('cancelBtn').style.display = 'none'; }
 function deleteProduct(id) { if (!confirm('Delete?')) return; products = products.filter(x => x.id != id); save(); renderProducts(); renderMenu(); }
 function addToCart(id) { let p = products.find(x => x.id == id); if (!p || p.stock <= 0) return alert('Out of Stock!'); let c = cart.find(x => x.id == id); if (c) c.qty++; else cart.push({ id: p.id, name: p.name, price: p.price, qty: 1, veg: p.veg }); renderCart(); }
-function renderCart() { let h = ''; let sub = 0; cart.forEach((c, i) => { let amt = c.price * c.qty; sub += amt; let ic = c.veg == 'veg' ? '🟢' : c.veg == 'nonveg' ? '🔴' : '🥤'; h += `<tr><td>${ic} ${c.name}<br>₹${c.price}</td><td><button onclick="changeQty(${i},-1)">-</button> ${c.qty} <button onclick="changeQty(${i},1)">+</button></td><td>₹${amt}</td><td><button onclick="removeItem(${i})">✕</button></td></tr>`; }); document.getElementById('cart').innerHTML = h; let discP = +document.getElementById('discount').value; let disc = sub * discP / 100; let after = sub - disc; let gstP = parseInt(document.getElementById('gstMode').value); let gst = after * gstP / 100; document.getElementById('sub').innerText = '₹' + sub; document.getElementById('discAmt').innerText = '-₹' + disc.toFixed(2); document.getElementById('gstAmt').innerText = '₹' + gst.toFixed(2); document.getElementById('grand').innerText = '₹' + (after + gst).toFixed(2); updateToday(); }
+function renderCart() { let h = ''; let sub = 0; cart.forEach((c, i) => { let amt = c.price * c.qty; sub += amt; let ic = c.veg == 'veg' ? 'VEG' : c.veg == 'nonveg' ? 'NON-VEG' : 'DRINK'; h += `<tr><td>${ic} ${c.name}<br>Rs ${c.price}</td><td><button onclick="changeQty(${i},-1)">-</button> ${c.qty} <button onclick="changeQty(${i},1)">+</button></td><td>Rs ${amt}</td><td><button onclick="removeItem(${i})">X</button></td></tr>`; }); document.getElementById('cart').innerHTML = h; let discP = +document.getElementById('discount').value; let disc = sub * discP / 100; let after = sub - disc; let gstP = parseInt(document.getElementById('gstMode').value); let gst = after * gstP / 100; document.getElementById('sub').innerText = 'Rs ' + sub; document.getElementById('discAmt').innerText = '-Rs ' + disc.toFixed(2); document.getElementById('gstAmt').innerText = 'Rs ' + gst.toFixed(2); document.getElementById('grand').innerText = 'Rs ' + (after + gst).toFixed(2); updateToday(); }
 function changeQty(i, d) { cart[i].qty += d; if (cart[i].qty <= 0) cart.splice(i, 1); renderCart(); }
 function removeItem(i) { cart.splice(i, 1); renderCart(); }
 function newBill() { cart = []; renderCart(); document.getElementById('custName').value = ''; document.getElementById('custPhone').value = ''; }
-async function connectUSB() { try { await navigator.usb.requestDevice({ filters: [] }); document.getElementById('usbStatus').innerText = '● USB Connected'; } catch (e) { document.getElementById('usbStatus').innerText = '● Using Windows Default Printer'; } }
-async function connectBT() { try { let d = await navigator.bluetooth.requestDevice({ acceptAllDevices: true }); document.getElementById('btStatus').innerText = '● Bluetooth: ' + d.name; } catch (e) { alert('Bluetooth connect failed'); } }
-function buildBillHTML(cust, cart, sub, disc, gst, gstP, total, pay, orderType, billNo) { let items = cart.map(c => `${c.veg == 'veg' ? '[VEG]' : c.veg == 'nonveg' ? '[NON-VEG]' : ''} ${c.name} x ${c.qty} = ₹${c.price * c.qty}<br>`).join(''); return `<div style="padding:8px;text-align:center"><h2>${settings.shopName}</h2><p>${settings.shopAddr}<br>${settings.shopPhone}</p><hr><p style="text-align:left">Customer: ${cust}<br>Order: ${orderType}<br>Date: ${new Date().toLocaleString()}<br>Pay: ${pay}<br>Bill No: ${billNo}</p><hr><div style="text-align:left">${items}</div><hr><p style="text-align:left">Subtotal: ₹${sub}<br>Discount: -₹${disc.toFixed(2)}<br>GST: ₹${gst.toFixed(2)}</p><h3>Total: ₹${total.toFixed(2)}</h3><hr><p>Thank You!</p></div>`; }
+async function connectUSB() { try { await navigator.usb.requestDevice({ filters: [] }); document.getElementById('usbStatus').innerText = 'USB Connected'; } catch (e) { document.getElementById('usbStatus').innerText = 'Using Windows Default Printer'; } }
+async function connectBT() { try { let d = await navigator.bluetooth.requestDevice({ acceptAllDevices: true }); document.getElementById('btStatus').innerText = 'Bluetooth: ' + d.name; } catch (e) { alert('Bluetooth connect failed'); } }
+function buildBillHTML(cust, cart, sub, disc, gst, gstP, total, pay, orderType, billNo) { let items = cart.map(c => `${c.veg == 'veg' ? '[VEG]' : c.veg == 'nonveg' ? '[NON-VEG]' : ''} ${c.name} x ${c.qty} = Rs ${c.price * c.qty}<br>`).join(''); return `<div style="padding:8px;text-align:center"><h2>${settings.shopName}</h2><p>${settings.shopAddr}<br>${settings.shopPhone}</p><hr><p style="text-align:left">Customer: ${cust}<br>Order: ${orderType}<br>Date: ${new Date().toLocaleString()}<br>Pay: ${pay}<br>Bill No: ${billNo}</p><hr><div style="text-align:left">${items}</div><hr><p style="text-align:left">Subtotal: Rs ${sub}<br>Discount: -Rs ${disc.toFixed(2)}<br>GST: Rs ${gst.toFixed(2)}</p><h3>Total: Rs ${total.toFixed(2)}</h3><hr><p>Thank You!</p></div>`; }
 function testPrint() { let html = buildBillHTML('Test', [{ name: 'Chicken Biryani', qty: 1, price: 180, veg: 'nonveg' }], 180, 0, 9, 5, 189, 'Cash', 'Dine-In', 'TEST'); doPrint(html); }
 function doPrint(html) { document.getElementById('billPrint').innerHTML = html; window.print(); }
 function getTotals() { let sub = cart.reduce((s, c) => s + c.price * c.qty, 0); let discP = +document.getElementById('discount').value; let disc = sub * discP / 100; let after = sub - disc; let gstP = parseInt(document.getElementById('gstMode').value); let gst = after * gstP / 100; let total = after + gst; return { sub, disc, gst, gstP, total }; }
 function getBillText() {
   if (cart.length == 0) return null; let t = getTotals(); let cust = document.getElementById('custName').value || 'Customer'; let pay = document.getElementById('payMode').value; let orderType = document.getElementById('orderType').value; let billNo = Date.now().toString().slice(-6);
-  let msg = `🧾 *${settings.shopName}*\n${settings.shopAddr}\n${settings.shopPhone}\n----------------------\n👤 Customer: ${cust}\n🧾 Bill No: ${billNo}\n📦 Order: ${orderType}\n📅 ${new Date().toLocaleString()}\n💳 Payment: ${pay}\n----------------------\n`;
-  cart.forEach(c => { let ic = c.veg == 'veg' ? '🟢' : c.veg == 'nonveg' ? '🔴' : '🥤'; msg += `${ic} ${c.name} x ${c.qty} = ₹${c.price * c.qty}\n`; });
-  msg += `----------------------\nSubtotal: ₹${t.sub}\nDiscount: -₹${t.disc.toFixed(2)}\nGST (${t.gstP}%): ₹${t.gst.toFixed(2)}\n*Total: ₹${t.total.toFixed(2)}*\n----------------------\nThank You Visit Again! 🙏`;
+  let msg = `${settings.shopName}\n${settings.shopAddr}\n${settings.shopPhone}\n----------------------\nCustomer: ${cust}\nBill No: ${billNo}\nOrder: ${orderType}\nDate: ${new Date().toLocaleString()}\nPayment: ${pay}\n----------------------\n`;
+  cart.forEach(c => { let ic = c.veg == 'veg' ? 'VEG' : c.veg == 'nonveg' ? 'NON-VEG' : 'DRINK'; msg += `${ic} ${c.name} x ${c.qty} = Rs ${c.price * c.qty}\n`; });
+  msg += `----------------------\nSubtotal: Rs ${t.sub}\nDiscount: -Rs ${t.disc.toFixed(2)}\nGST (${t.gstP}%): Rs ${t.gst.toFixed(2)}\nTotal: Rs ${t.total.toFixed(2)}\n----------------------\nThank You Visit Again!`;
   return { msg, ...t, cust, pay, orderType, billNo };
 }
 function sendBillWhatsApp() { let data = getBillText(); if (!data) return alert('Cart empty!'); let phone = document.getElementById('custPhone').value.trim(); if (!phone || phone.length != 10) return alert('Customer Phone 10 digits required'); sendDirect(phone, data.msg); }
-function sendOwnerOnly() { let data = getBillText(); if (!data) return alert('Cart empty!'); let ownerPhone = settings.ownerPhone || '6303033677'; let itemsTxt = cart.map(c => `${c.name} x${c.qty}`).join(', '); let omsg = `🔔 *NEW BILL - ${settings.shopName}*\nBill No: ${data.billNo}\nCustomer: ${data.cust}\nItems: ${itemsTxt}\n*Total: ₹${data.total.toFixed(2)}* - ${data.pay}`; sendDirect(ownerPhone, omsg); }
+function sendOwnerOnly() { let data = getBillText(); if (!data) return alert('Cart empty!'); let ownerPhone = settings.ownerPhone || '6303033677'; let itemsTxt = cart.map(c => `${c.name} x${c.qty}`).join(', '); let omsg = `NEW BILL - ${settings.shopName}\nBill No: ${data.billNo}\nCustomer: ${data.cust}\nItems: ${itemsTxt}\nTotal: Rs ${data.total.toFixed(2)} - ${data.pay}`; sendDirect(ownerPhone, omsg); }
 function copyBill() { let d = getBillText(); if (!d) return alert('Cart empty!'); navigator.clipboard.writeText(d.msg).then(() => alert('Copied!')); }
-function testOwnerMsg() { sendDirect(settings.ownerPhone, '🔔 TEST - Direct SMS working - ' + settings.shopName); }
+function testOwnerMsg() { sendDirect(settings.ownerPhone, 'TEST - Direct SMS working - ' + settings.shopName); }
 function saveSale(data, phone) { cart.forEach(c => { let p = products.find(x => x.id == c.id); if (p) p.stock -= c.qty; }); sales.push({ date: new Date().toLocaleString(), cust: data.cust, total: data.total, mode: data.pay, items: cart.length, phone: phone || '', billNo: data.billNo }); save(); cart = []; renderCart(); renderProducts(); renderMenu(); }
 async function checkout() {
   if (cart.length == 0) return alert('Cart empty!');
   let data = getBillText(); let custPhone = document.getElementById('custPhone').value.trim(); let cartCopy = [...cart]; let custMsg = data.msg; let ownerPhone = settings.ownerPhone || '6303033677';
   let itemsTxt = cartCopy.map(c => `${c.name} x${c.qty}`).join(', ');
-  let ownerMsg = `🔔 *NEW BILL - ${settings.shopName}*\nBill No: ${data.billNo}\nCustomer: ${data.cust} ${custPhone ? '- ' + custPhone : ''}\nItems: ${itemsTxt}\n*Total: ₹${data.total.toFixed(2)}*\nPayment: ${data.pay}`;
+  let ownerMsg = `NEW BILL - ${settings.shopName}\nBill No: ${data.billNo}\nCustomer: ${data.cust} ${custPhone ? '- ' + custPhone : ''}\nItems: ${itemsTxt}\nTotal: Rs ${data.total.toFixed(2)}\nPayment: ${data.pay}`;
   saveCustomerToNotepad(data.cust, custPhone, data.total.toFixed(2), data.billNo);
   saveSale(data, custPhone);
   let html = buildBillHTML(data.cust, cartCopy, data.sub, data.disc, data.gst, data.gstP, data.total, data.pay, data.orderType, data.billNo);
@@ -242,8 +242,8 @@ async function checkout() {
   document.getElementById('custName').value = ''; document.getElementById('custPhone').value = '';
   alert('Bill Done! Customer saved to Notepad');
 }
-function updateToday() { let today = new Date().toDateString(); let sum = sales.filter(s => new Date(s.date).toDateString() == today).reduce((a, b) => a + b.total, 0); let el=document.getElementById('todaySales'); if(el) el.innerText = 'Today: ₹' + sum.toFixed(0); }
-function showReport() { let today = new Date().toDateString(); let t = sales.filter(s => new Date(s.date).toDateString() == today); let sum = t.reduce((a, b) => a + b.total, 0); document.getElementById('reportText').innerHTML = `Today Bills: ${t.length}<br>Total Sales: ₹${sum}`; document.getElementById('salesList').innerHTML = t.map(s => `<div class="prod"><div><b>${s.cust} ${s.phone ? '- ' + s.phone : ''}</b><br><small>${s.date} | ${s.mode}</small></div><b>₹${s.total}</b></div>`).join(''); }
+function updateToday() { let today = new Date().toDateString(); let sum = sales.filter(s => new Date(s.date).toDateString() == today).reduce((a, b) => a + b.total, 0); let el=document.getElementById('todaySales'); if(el) el.innerText = 'Today: Rs ' + sum.toFixed(0); }
+function showReport() { let today = new Date().toDateString(); let t = sales.filter(s => new Date(s.date).toDateString() == today); let sum = t.reduce((a, b) => a + b.total, 0); document.getElementById('reportText').innerHTML = `Today Bills: ${t.length}<br>Total Sales: Rs ${sum}`; document.getElementById('salesList').innerHTML = t.map(s => `<div class="prod"><div><b>${s.cust} ${s.phone ? '- ' + s.phone : ''}</b><br><small>${s.date} | ${s.mode}</small></div><b>Rs ${s.total}</b></div>`).join(''); }
 function deleteTodaySale() { if (!confirm('Delete Today Sale?')) return; let today = new Date().toDateString(); sales = sales.filter(s => new Date(s.date).toDateString() != today); save(); updateToday(); showReport(); alert('Today Sale Deleted'); }
 function clearAllData() { if (!confirm('Clear All Data?')) return; localStorage.clear(); location.reload(); }
 document.getElementById('gstMode')?.addEventListener('change', renderCart);
