@@ -18,10 +18,7 @@ let cart = [];
 let sales = JSON.parse(localStorage.getItem('pos_sales') || '[]');
 let customers = JSON.parse(localStorage.getItem('pos_customers') || '[]');
 let settings = JSON.parse(localStorage.getItem('pos_settings') || '{"shopName":"GOWTHAM STORE","shopAddr":"Nellore, AP","shopPhone":"Ph: 90000 00000","ownerPhone":"6303033677","ownerNotify":true,"custNotify":true}');
-// PIN IS NOT IN CODE. PIN IS ONLY IN BROWSER STORAGE. Owner creates it in interface.
-let ownerPin = localStorage.getItem('pos_pin') || '';
 let activeCol = 'All'; let activeVeg = 'all';
-let pendingAction = null;
 const FAST2SMS_API_KEY = "";
 const SEND_MODE = "sms";
 
@@ -32,113 +29,6 @@ async function sendDirect(phone, message) {
   }
   if (SEND_MODE === "whatsapp") { window.location.href = 'whatsapp://send?phone=91' + phone + '&text=' + encodeURIComponent(message); }
   else { window.location.href = 'sms:+91' + phone + '?body=' + encodeURIComponent(message); }
-}
-
-// ===== LOGIN SYSTEM - 2 TYPES =====
-function showLoginTab(type) {
-  document.getElementById('staffLoginBox').classList.toggle('hidden', type !== 'staff');
-  document.getElementById('adminLoginBox').classList.toggle('hidden', type !== 'admin');
-  if (type === 'admin' && !ownerPin) {
-    document.getElementById('createPinBox').classList.remove('hidden');
-    document.getElementById('firstTimeNote').innerText = 'No PIN yet. Create your PIN first.';
-  } else {
-    document.getElementById('createPinBox').classList.add('hidden');
-    document.getElementById('firstTimeNote').innerText = 'First time? Create PIN below';
-  }
-}
-function staffLogin() {
-  let name = document.getElementById('staffName').value.trim();
-  let mob = document.getElementById('staffMobile').value.trim();
-  if (!name || mob.length !== 10) return alert('Enter Staff Name and 10-digit Mobile');
-  sessionStorage.setItem('pos_logged', 'yes');
-  sessionStorage.setItem('pos_role', 'staff');
-  sessionStorage.setItem('pos_staff', name);
-  document.getElementById('loginScreen').style.display = 'none';
-  applyRole();
-}
-function adminLogin() {
-  let mob = document.getElementById('loginMobile').value.trim();
-  let pin = document.getElementById('loginPin').value.trim();
-  if (!ownerPin) return alert('No PIN yet. Create PIN first below.');
-  if (mob === settings.ownerPhone && pin === ownerPin) {
-    sessionStorage.setItem('pos_logged', 'yes');
-    sessionStorage.setItem('pos_role', 'admin');
-    document.getElementById('loginScreen').style.display = 'none';
-    applyRole();
-  } else {
-    document.getElementById('loginError').innerText = 'Wrong Mobile or PIN. Only Owner can login as Admin.';
-  }
-}
-function createFirstPin() {
-  let mob = document.getElementById('loginMobile').value.trim();
-  let newPin = document.getElementById('newOwnerPin').value.trim();
-  if (mob !== settings.ownerPhone) return alert('Enter Correct Owner Mobile First');
-  if (newPin.length !== 4) return alert('PIN must be 4 digits');
-  ownerPin = newPin;
-  localStorage.setItem('pos_pin', newPin);
-  alert('PIN Created Successfully! Now login with PIN.');
-  document.getElementById('createPinBox').classList.add('hidden');
-}
-function ownerLogout() { sessionStorage.clear(); location.reload(); }
-function checkLogin() {
-  if (sessionStorage.getItem('pos_logged') !== 'yes') {
-    document.getElementById('loginScreen').style.display = 'flex';
-    showLoginTab('staff');
-  } else {
-    document.getElementById('loginScreen').style.display = 'none';
-    applyRole();
-  }
-}
-function applyRole() {
-  let role = sessionStorage.getItem('pos_role');
-  let isAdmin = (role === 'admin');
-  document.querySelectorAll('.tabs button').forEach(b => {
-    let txt = b.innerText;
-    if (!isAdmin && (txt.includes('Settings') || txt.includes('Columns') || txt.includes('Menu Edit'))) {
-      b.style.display = 'none';
-    } else { b.style.display = ''; }
-  });
-  let header = document.getElementById('headerTitle');
-  if (header) header.innerText = isAdmin ? 'VINTAGE WAFFLE - ADMIN 👑' : 'VINTAGE WAFFLE - STAFF 🍽️';
-}
-
-// ===== PIN LOCK - ONLY OWNER CAN CHANGE =====
-function askPin(action) {
-  if (sessionStorage.getItem('pos_role') !== 'admin' && action === 'changePin') {
-    return alert('Only Owner (Admin) can change PIN. Please login as Admin.');
-  }
-  if (sessionStorage.getItem('pos_role') !== 'admin' && (action === 'deleteToday' || action === 'clearAll' || action === 'clearCustomers')) {
-    return alert('Only Owner (Admin) can do this. Please login as Admin.');
-  }
-  pendingAction = action;
-  document.getElementById('pinModal').classList.remove('hidden');
-  document.getElementById('pinInput').value = '';
-  document.getElementById('newPinInput').value = '';
-  document.getElementById('pinError').innerText = '';
-  document.getElementById('changePinBox').classList.toggle('hidden', action !== 'changePin');
-  document.getElementById('pinModalText').innerText = action === 'changePin' ? 'Enter Old PIN + New PIN' : 'Enter Owner PIN to Continue';
-}
-function closePin() { document.getElementById('pinModal').classList.add('hidden'); pendingAction = null; }
-function checkPin() {
-  let p = document.getElementById('pinInput').value.trim();
-  if (p !== ownerPin) { document.getElementById('pinError').innerText = 'Wrong PIN! Only Owner knows PIN.'; return; }
-  if (pendingAction === 'changePin') {
-    let np = document.getElementById('newPinInput').value.trim();
-    if (np.length !== 4) return alert('New PIN must be 4 digits');
-    ownerPin = np;
-    localStorage.setItem('pos_pin', np);
-    alert('PIN Changed Successfully! New PIN is saved.');
-    closePin(); return;
-  }
-  closePin();
-  if (pendingAction === 'deleteToday') deleteTodaySale();
-  if (pendingAction === 'clearAll') { localStorage.clear(); location.reload(); }
-  if (pendingAction === 'clearCustomers') { customers = []; localStorage.setItem('pos_customers', '[]'); renderCustomers(); alert('Customers Cleared'); }
-}
-function deleteTodaySale() {
-  let today = new Date().toDateString();
-  sales = sales.filter(s => new Date(s.date).toDateString() != today);
-  save(); updateToday(); showReport(); alert('Today Sale Deleted - PIN Verified');
 }
 
 // ===== CUSTOMER NOTEPAD - AUTO SAVE =====
@@ -166,6 +56,7 @@ function downloadNotepad() {
   alert('Notepad Download Done');
 }
 function copyCustomers() { navigator.clipboard.writeText(getNotepadText()).then(() => alert('Copied! Paste in Notepad')); }
+function clearCustomers() { if (!confirm('Clear all customers?')) return; customers = []; localStorage.setItem('pos_customers', '[]'); renderCustomers(); }
 
 function save() { localStorage.setItem('pos_products', JSON.stringify(products)); localStorage.setItem('pos_sales', JSON.stringify(sales)); localStorage.setItem('pos_columns', JSON.stringify(columns)); }
 function saveSettings() {
@@ -283,43 +174,9 @@ async function checkout() {
 }
 function updateToday() { let today = new Date().toDateString(); let sum = sales.filter(s => new Date(s.date).toDateString() == today).reduce((a, b) => a + b.total, 0); let el=document.getElementById('todaySales'); if(el) el.innerText = 'Today: ₹' + sum.toFixed(0); }
 function showReport() { let today = new Date().toDateString(); let t = sales.filter(s => new Date(s.date).toDateString() == today); let sum = t.reduce((a, b) => a + b.total, 0); document.getElementById('reportText').innerHTML = `Today Bills: ${t.length}<br>Total Sales: ₹${sum}`; document.getElementById('salesList').innerHTML = t.map(s => `<div class="prod"><div><b>${s.cust} ${s.phone ? '- ' + s.phone : ''}</b><br><small>${s.date} | ${s.mode}</small></div><b>₹${s.total}</b></div>`).join(''); }
-function clearAll() { askPin('clearAll'); }
+function deleteTodaySale() { if (!confirm('Delete Today Sale?')) return; let today = new Date().toDateString(); sales = sales.filter(s => new Date(s.date).toDateString() != today); save(); updateToday(); showReport(); alert('Today Sale Deleted'); }
+function clearAllData() { if (!confirm('Clear All Data?')) return; localStorage.clear(); location.reload(); }
 document.getElementById('gstMode')?.addEventListener('change', renderCart);
 document.getElementById('discount')?.addEventListener('change', renderCart);
 document.getElementById('custPhone')?.addEventListener('input', () => { document.getElementById('custDisplay').innerText = document.getElementById('custPhone').value || 'Enter Phone'; });
-checkLogin(); loadSettings(); renderProducts(); renderCart(); renderMenu(); renderColumns(); renderCustomers(); updateToday();
-// FORGOT PIN - RESET WITH OWNER MOBILE ONLY
-function resetPin() {
-  let mob = document.getElementById('loginMobile').value.trim();
-  if (mob !== settings.ownerPhone) {
-    return alert('Enter Correct Owner Mobile First. Only Owner can reset PIN.');
-  }
-  if (!confirm('Are you sure? Old PIN will be deleted. You will create a new PIN.')) return;
-  ownerPin = '';
-  localStorage.removeItem('pos_pin');
-  document.getElementById('createPinBox').classList.remove('hidden');
-  document.getElementById('firstTimeNote').innerText = 'PIN Reset Done. Create New PIN now.';
-  alert('PIN Reset Done! Now create a New PIN below.');
-}
-
-// FIXED ADMIN LOGIN - Shows correct error
-function adminLogin() {
-  let mob = document.getElementById('loginMobile').value.trim();
-  let pin = document.getElementById('loginPin').value.trim();
-  if (!ownerPin) {
-    document.getElementById('createPinBox').classList.remove('hidden');
-    return alert('No PIN yet. Please Create PIN first below.');
-  }
-  if (mob !== settings.ownerPhone) {
-    document.getElementById('loginError').innerText = 'Wrong Owner Mobile. Enter ' + settings.ownerPhone;
-    return;
-  }
-  if (pin !== ownerPin) {
-    document.getElementById('loginError').innerText = 'Wrong PIN. Click Forgot PIN to reset.';
-    return;
-  }
-  sessionStorage.setItem('pos_logged', 'yes');
-  sessionStorage.setItem('pos_role', 'admin');
-  document.getElementById('loginScreen').style.display = 'none';
-  applyRole();
-}
+loadSettings(); renderProducts(); renderCart(); renderMenu(); renderColumns(); renderCustomers(); updateToday();
