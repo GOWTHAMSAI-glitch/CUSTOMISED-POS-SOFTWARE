@@ -171,6 +171,19 @@
 <div id="billPrint"></div>
 </div>
 </div>
+  <div id="adminLoginBox" class="hidden">
+  <p>Owner Only - Full Control</p>
+  <input id="loginMobile" type="tel" maxlength="10" placeholder="Owner Mobile">
+  <input id="loginPin" type="password" maxlength="4" placeholder="Owner PIN">
+  <button class="btn-green" onclick="adminLogin()">🔓 Admin Login</button>
+  <small id="firstTimeNote">First time? Create PIN below</small>
+  <div id="createPinBox" class="hidden" style="margin-top:10px;border-top:1px solid #ddd;padding-top:10px">
+    <input id="newOwnerPin" type="password" maxlength="4" placeholder="Create New 4-Digit PIN">
+    <button class="btn-blue" onclick="createFirstPin()">Create PIN</button>
+  </div>
+  <!-- NEW - RESET BUTTON -->
+  <button style="background:none;color:#2563eb;text-decoration:underline;margin-top:8px;font-size:13px" onclick="resetPin()">Forgot PIN? Reset PIN</button>
+</div>
 <script src="script.js"></script>
 </body>
 </html>
