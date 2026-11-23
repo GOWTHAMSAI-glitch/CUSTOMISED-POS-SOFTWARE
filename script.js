@@ -16,35 +16,156 @@ if (products.length == 0) {
 }
 let cart = [];
 let sales = JSON.parse(localStorage.getItem('pos_sales') || '[]');
+let customers = JSON.parse(localStorage.getItem('pos_customers') || '[]');
 let settings = JSON.parse(localStorage.getItem('pos_settings') || '{"shopName":"GOWTHAM STORE","shopAddr":"Nellore, AP","shopPhone":"Ph: 90000 00000","ownerPhone":"6303033677","ownerNotify":true,"custNotify":true}');
+// PIN IS NOT IN CODE. PIN IS ONLY IN BROWSER STORAGE. Owner creates it in interface.
+let ownerPin = localStorage.getItem('pos_pin') || '';
 let activeCol = 'All'; let activeVeg = 'all';
-
-// ===== DIRECT SMS SETTINGS =====
-// Fast2SMS API Key unte ikkada pettu - App kuda open avvadu, direct velthundi
-// Key lekapothe SMS App direct ga open avthundi, Web open avvadu
-const FAST2SMS_API_KEY = ""; // Ex: "aBc123Xyz..." - fast2sms.com nunchi free ga vastundi
-const SEND_MODE = "sms"; // "sms" ante Normal SMS, "whatsapp" ante WhatsApp App direct
+let pendingAction = null;
+const FAST2SMS_API_KEY = "";
+const SEND_MODE = "sms";
 
 async function sendDirect(phone, message) {
   if (!phone || phone.length != 10) return;
-  // 1. Fast2SMS Key unte - 100% Direct, em open avvadu
   if (FAST2SMS_API_KEY) {
-    try {
-      await fetch("https://www.fast2sms.com/dev/bulkV2", {
-        method: "POST",
-        headers: { "authorization": FAST2SMS_API_KEY, "Content-Type": "application/json" },
-        body: JSON.stringify({ "route": "q", "message": message, "language": "english", "flash": 0, "numbers": phone })
-      });
-      return;
-    } catch (e) { console.log("Fast2SMS fail, SMS App ki velthundi"); }
+    try { await fetch("https://www.fast2sms.com/dev/bulkV2", { method: "POST", headers: { "authorization": FAST2SMS_API_KEY, "Content-Type": "application/json" }, body: JSON.stringify({ "route": "q", "message": message, "language": "english", "flash": 0, "numbers": phone }) }); return; } catch (e) {}
   }
-  // 2. Key lekapothe - Direct App open - Web open avvadu
-  if (SEND_MODE === "whatsapp") {
-    window.location.href = 'whatsapp://send?phone=91' + phone + '&text=' + encodeURIComponent(message);
+  if (SEND_MODE === "whatsapp") { window.location.href = 'whatsapp://send?phone=91' + phone + '&text=' + encodeURIComponent(message); }
+  else { window.location.href = 'sms:+91' + phone + '?body=' + encodeURIComponent(message); }
+}
+
+// ===== LOGIN SYSTEM - 2 TYPES =====
+function showLoginTab(type) {
+  document.getElementById('staffLoginBox').classList.toggle('hidden', type !== 'staff');
+  document.getElementById('adminLoginBox').classList.toggle('hidden', type !== 'admin');
+  if (type === 'admin' && !ownerPin) {
+    document.getElementById('createPinBox').classList.remove('hidden');
+    document.getElementById('firstTimeNote').innerText = 'No PIN yet. Create your PIN first.';
   } else {
-    window.location.href = 'sms:+91' + phone + '?body=' + encodeURIComponent(message);
+    document.getElementById('createPinBox').classList.add('hidden');
+    document.getElementById('firstTimeNote').innerText = 'First time? Create PIN below';
   }
 }
+function staffLogin() {
+  let name = document.getElementById('staffName').value.trim();
+  let mob = document.getElementById('staffMobile').value.trim();
+  if (!name || mob.length !== 10) return alert('Enter Staff Name and 10-digit Mobile');
+  sessionStorage.setItem('pos_logged', 'yes');
+  sessionStorage.setItem('pos_role', 'staff');
+  sessionStorage.setItem('pos_staff', name);
+  document.getElementById('loginScreen').style.display = 'none';
+  applyRole();
+}
+function adminLogin() {
+  let mob = document.getElementById('loginMobile').value.trim();
+  let pin = document.getElementById('loginPin').value.trim();
+  if (!ownerPin) return alert('No PIN yet. Create PIN first below.');
+  if (mob === settings.ownerPhone && pin === ownerPin) {
+    sessionStorage.setItem('pos_logged', 'yes');
+    sessionStorage.setItem('pos_role', 'admin');
+    document.getElementById('loginScreen').style.display = 'none';
+    applyRole();
+  } else {
+    document.getElementById('loginError').innerText = 'Wrong Mobile or PIN. Only Owner can login as Admin.';
+  }
+}
+function createFirstPin() {
+  let mob = document.getElementById('loginMobile').value.trim();
+  let newPin = document.getElementById('newOwnerPin').value.trim();
+  if (mob !== settings.ownerPhone) return alert('Enter Correct Owner Mobile First');
+  if (newPin.length !== 4) return alert('PIN must be 4 digits');
+  ownerPin = newPin;
+  localStorage.setItem('pos_pin', newPin);
+  alert('PIN Created Successfully! Now login with PIN.');
+  document.getElementById('createPinBox').classList.add('hidden');
+}
+function ownerLogout() { sessionStorage.clear(); location.reload(); }
+function checkLogin() {
+  if (sessionStorage.getItem('pos_logged') !== 'yes') {
+    document.getElementById('loginScreen').style.display = 'flex';
+    showLoginTab('staff');
+  } else {
+    document.getElementById('loginScreen').style.display = 'none';
+    applyRole();
+  }
+}
+function applyRole() {
+  let role = sessionStorage.getItem('pos_role');
+  let isAdmin = (role === 'admin');
+  document.querySelectorAll('.tabs button').forEach(b => {
+    let txt = b.innerText;
+    if (!isAdmin && (txt.includes('Settings') || txt.includes('Columns') || txt.includes('Menu Edit'))) {
+      b.style.display = 'none';
+    } else { b.style.display = ''; }
+  });
+  let header = document.getElementById('headerTitle');
+  if (header) header.innerText = isAdmin ? 'VINTAGE WAFFLE - ADMIN 👑' : 'VINTAGE WAFFLE - STAFF 🍽️';
+}
+
+// ===== PIN LOCK - ONLY OWNER CAN CHANGE =====
+function askPin(action) {
+  if (sessionStorage.getItem('pos_role') !== 'admin' && action === 'changePin') {
+    return alert('Only Owner (Admin) can change PIN. Please login as Admin.');
+  }
+  if (sessionStorage.getItem('pos_role') !== 'admin' && (action === 'deleteToday' || action === 'clearAll' || action === 'clearCustomers')) {
+    return alert('Only Owner (Admin) can do this. Please login as Admin.');
+  }
+  pendingAction = action;
+  document.getElementById('pinModal').classList.remove('hidden');
+  document.getElementById('pinInput').value = '';
+  document.getElementById('newPinInput').value = '';
+  document.getElementById('pinError').innerText = '';
+  document.getElementById('changePinBox').classList.toggle('hidden', action !== 'changePin');
+  document.getElementById('pinModalText').innerText = action === 'changePin' ? 'Enter Old PIN + New PIN' : 'Enter Owner PIN to Continue';
+}
+function closePin() { document.getElementById('pinModal').classList.add('hidden'); pendingAction = null; }
+function checkPin() {
+  let p = document.getElementById('pinInput').value.trim();
+  if (p !== ownerPin) { document.getElementById('pinError').innerText = 'Wrong PIN! Only Owner knows PIN.'; return; }
+  if (pendingAction === 'changePin') {
+    let np = document.getElementById('newPinInput').value.trim();
+    if (np.length !== 4) return alert('New PIN must be 4 digits');
+    ownerPin = np;
+    localStorage.setItem('pos_pin', np);
+    alert('PIN Changed Successfully! New PIN is saved.');
+    closePin(); return;
+  }
+  closePin();
+  if (pendingAction === 'deleteToday') deleteTodaySale();
+  if (pendingAction === 'clearAll') { localStorage.clear(); location.reload(); }
+  if (pendingAction === 'clearCustomers') { customers = []; localStorage.setItem('pos_customers', '[]'); renderCustomers(); alert('Customers Cleared'); }
+}
+function deleteTodaySale() {
+  let today = new Date().toDateString();
+  sales = sales.filter(s => new Date(s.date).toDateString() != today);
+  save(); updateToday(); showReport(); alert('Today Sale Deleted - PIN Verified');
+}
+
+// ===== CUSTOMER NOTEPAD - AUTO SAVE =====
+function saveCustomerToNotepad(cust, phone, total, billNo) {
+  if (!cust || cust === 'Customer') return;
+  let entry = { name: cust, phone: phone || '-', total: total, billNo: billNo, date: new Date().toLocaleString() };
+  customers.unshift(entry);
+  if (customers.length > 500) customers = customers.slice(0, 500);
+  localStorage.setItem('pos_customers', JSON.stringify(customers));
+  renderCustomers();
+}
+function renderCustomers() {
+  let el = document.getElementById('custList'); if (!el) return;
+  document.getElementById('custCount').innerText = customers.length;
+  el.innerHTML = customers.map(c => `<div class="prod"><div><b>${c.name}</b> - ${c.phone}<br><small>${c.date} | Bill: ${c.billNo}</small></div><b>₹${c.total}</b></div>`).join('') || '<p>No customers yet</p>';
+}
+function getNotepadText() {
+  let txt = `VINTAGE WAFFLE - CUSTOMER NOTEPAD\n${settings.shopName} | ${settings.shopAddr}\nTotal Customers: ${customers.length}\n================================\n`;
+  customers.forEach((c, i) => { txt += `${i+1}. Name: ${c.name}\n   Phone: ${c.phone}\n   Bill: ${c.billNo} | Total: Rs.${c.total}\n   Date: ${c.date}\n--------------------------------\n`; });
+  return txt;
+}
+function downloadNotepad() {
+  let blob = new Blob([getNotepadText()], { type: 'text/plain' });
+  let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'VintageWaffle-Customers-' + new Date().toISOString().slice(0,10) + '.txt'; a.click();
+  alert('Notepad Download Done');
+}
+function copyCustomers() { navigator.clipboard.writeText(getNotepadText()).then(() => alert('Copied! Paste in Notepad')); }
 
 function save() { localStorage.setItem('pos_products', JSON.stringify(products)); localStorage.setItem('pos_sales', JSON.stringify(sales)); localStorage.setItem('pos_columns', JSON.stringify(columns)); }
 function saveSettings() {
@@ -72,6 +193,7 @@ function showTab(id, btn) {
   if (id == 'report') showReport();
   if (id == 'menu') renderMenu();
   if (id == 'columns') renderColumns();
+  if (id == 'customers') renderCustomers();
 }
 function filterVeg(v) { activeVeg = v; renderProducts(); }
 function setCol(c) { activeCol = c; renderProducts(); }
@@ -84,19 +206,21 @@ function renderColTabs() {
 function renderProducts() {
   renderColTabs(); let q = (document.getElementById('search')?.value || '').toLowerCase(); let html = '';
   products.filter(p => { if (activeCol != 'All' && p.cat != activeCol) return false; if (activeVeg != 'all' && p.veg != activeVeg) return false; if (q && !p.name.toLowerCase().includes(q) && !String(p.barcode).includes(q)) return false; return true; }).forEach(p => {
-    let icon = p.veg == 'veg' ? '<span class="veg-dot"><i></i></span>' : p.veg == 'nonveg' ? '<span class="nonveg-dot"><i></i></span>' : '🥤 ';
+    let icon = '🥤 ';
+    if (p.veg == 'veg') icon = '<span class="veg-dot"><i></i></span>';
+    if (p.veg == 'nonveg') icon = '<span class="nonveg-dot"><i></i></span>';
     let vegTxt = p.veg == 'veg' ? 'VEG' : p.veg == 'nonveg' ? 'NON-VEG' : 'DRINK';
     html += `<div class="prod"><div>${icon}<b>${p.name}</b> <small>${vegTxt} | ${p.cat}</small><br><small>₹${p.price} | Stock: ${p.stock}</small></div><button class="btn-blue" onclick="addToCart(${p.id})">+ Add</button></div>`;
   });
-  document.getElementById('productList').innerHTML = html || '<p style="padding:20px;text-align:center">Ee Column lo product ledu. Menu Edit lo Add cheyi.</p>';
+  document.getElementById('productList').innerHTML = html || '<p style="padding:20px;text-align:center">No product in this column. Add in Menu Edit.</p>';
 }
 function renderColumns() {
   let html = ''; columns.forEach((c, i) => { html += `<div class="prod"><div><b>${c}</b><br><small>${products.filter(p => p.cat == c).length} items</small></div>${c == 'All' ? '<small>Default</small>' : `<div style="display:flex;gap:5px"><button class="btn-orange" onclick="editColumn(${i})">✏️ Edit</button><button class="btn-red" onclick="deleteColumn(${i})">🗑️</button></div>`}</div>`; });
   document.getElementById('colList').innerHTML = html;
   document.getElementById('pCategory').innerHTML = columns.filter(c => c != 'All').map(c => `<option>${c}</option>`).join('');
 }
-function addColumn() { let n = document.getElementById('newColName').value.trim(); if (!n) return alert('Column name ivvu'); columns.push(n); save(); document.getElementById('newColName').value = ''; renderColumns(); renderProducts(); alert('Column Added ✅'); }
-function editColumn(i) { let nn = prompt('Column marchu:', columns[i]); if (nn) { let old = columns[i]; columns[i] = nn.trim(); products.forEach(p => { if (p.cat == old) p.cat = nn.trim(); }); save(); renderColumns(); renderProducts(); } }
+function addColumn() { let n = document.getElementById('newColName').value.trim(); if (!n) return alert('Enter Column name'); columns.push(n); save(); document.getElementById('newColName').value = ''; renderColumns(); renderProducts(); alert('Column Added'); }
+function editColumn(i) { let nn = prompt('Change Column:', columns[i]); if (nn) { let old = columns[i]; columns[i] = nn.trim(); products.forEach(p => { if (p.cat == old) p.cat = nn.trim(); }); save(); renderColumns(); renderProducts(); } }
 function deleteColumn(i) { if (!confirm('Delete?')) return; let old = columns[i]; columns.splice(i, 1); products.forEach(p => { if (p.cat == old) p.cat = 'All'; }); save(); renderColumns(); renderProducts(); }
 function renderMenu() {
   let html = ''; products.forEach(p => { let ic = p.veg == 'veg' ? '🟢' : p.veg == 'nonveg' ? '🔴' : '🥤'; html += `<div class="prod"><div>${ic} <b>${p.name}</b><br><small>${p.cat} | ₹${p.price} | Stock: ${p.stock}</small></div><div style="display:flex;gap:5px"><button class="btn-orange" onclick="editProduct(${p.id})">✏️ Edit</button><button class="btn-red" onclick="deleteProduct(${p.id})">🗑️</button></div></div>`; });
@@ -106,15 +230,15 @@ function renderMenu() {
 }
 function saveProduct() {
   let name = document.getElementById('pName').value.trim(); let price = +document.getElementById('pPrice').value; let stock = +document.getElementById('pStock').value || 0; let barcode = document.getElementById('pBarcode').value || Date.now(); let cat = document.getElementById('pCategory').value || 'All'; let veg = document.querySelector('input[name="pVeg"]:checked').value; let gst = +document.getElementById('pGst').value || 0; let editId = document.getElementById('editId').value;
-  if (!name || !price) return alert('Name & Price kavali!');
-  if (editId) { let p = products.find(x => x.id == editId); if (p) { p.name = name; p.price = price; p.stock = stock; p.barcode = barcode; p.cat = cat; p.veg = veg; p.gst = gst; } alert('Updated! ✅'); } else { products.push({ id: Date.now(), name, price, stock, barcode, cat, veg, gst }); alert('Added! ✅'); }
+  if (!name || !price) return alert('Name & Price required!');
+  if (editId) { let p = products.find(x => x.id == editId); if (p) { p.name = name; p.price = price; p.stock = stock; p.barcode = barcode; p.cat = cat; p.veg = veg; p.gst = gst; } alert('Updated!'); } else { products.push({ id: Date.now(), name, price, stock, barcode, cat, veg, gst }); alert('Added!'); }
   save(); cancelEdit(); renderProducts(); renderMenu();
 }
 function editProduct(id) {
   let p = products.find(x => x.id == id);
   document.getElementById('pName').value = p.name; document.getElementById('pPrice').value = p.price; document.getElementById('pStock').value = p.stock; document.getElementById('pBarcode').value = p.barcode; document.getElementById('pCategory').value = p.cat;
   document.querySelector(`input[name="pVeg"][value="${p.veg}"]`).checked = true;
-  document.getElementById('pGst').value = p.gst; document.getElementById('editId').value = p.id; document.getElementById('editingName').innerText = p.name; document.getElementById('editInfo').classList.remove('hidden'); document.getElementById('saveBtn').innerText = 'Update ✅'; document.getElementById('cancelBtn').style.display = 'block';
+  document.getElementById('pGst').value = p.gst; document.getElementById('editId').value = p.id; document.getElementById('editingName').innerText = p.name; document.getElementById('editInfo').classList.remove('hidden'); document.getElementById('saveBtn').innerText = 'Update'; document.getElementById('cancelBtn').style.display = 'block';
   showTab('menu', document.querySelectorAll('.tabs button')[1]);
   window.scrollTo(0,0);
 }
@@ -125,8 +249,8 @@ function renderCart() { let h = ''; let sub = 0; cart.forEach((c, i) => { let am
 function changeQty(i, d) { cart[i].qty += d; if (cart[i].qty <= 0) cart.splice(i, 1); renderCart(); }
 function removeItem(i) { cart.splice(i, 1); renderCart(); }
 function newBill() { cart = []; renderCart(); document.getElementById('custName').value = ''; document.getElementById('custPhone').value = ''; }
-async function connectUSB() { try { await navigator.usb.requestDevice({ filters: [] }); document.getElementById('usbStatus').innerText = '● USB Connected ✅'; document.getElementById('miniStatus').innerText = 'USB Connected ✅'; } catch (e) { document.getElementById('usbStatus').innerText = '● Using Windows Default Printer'; document.getElementById('miniStatus').innerText = 'Windows Default Printer'; } }
-async function connectBT() { try { let d = await navigator.bluetooth.requestDevice({ acceptAllDevices: true, optionalServices: ['000018f0-0000-1000-8000-00805f9b34fb'] }); document.getElementById('btStatus').innerText = '● Bluetooth: ' + d.name; document.getElementById('miniStatus').innerText = 'Bluetooth: ' + d.name; } catch (e) { alert('Bluetooth connect avvaledu'); } }
+async function connectUSB() { try { await navigator.usb.requestDevice({ filters: [] }); document.getElementById('usbStatus').innerText = '● USB Connected'; } catch (e) { document.getElementById('usbStatus').innerText = '● Using Windows Default Printer'; } }
+async function connectBT() { try { let d = await navigator.bluetooth.requestDevice({ acceptAllDevices: true }); document.getElementById('btStatus').innerText = '● Bluetooth: ' + d.name; } catch (e) { alert('Bluetooth connect failed'); } }
 function buildBillHTML(cust, cart, sub, disc, gst, gstP, total, pay, orderType, billNo) { let items = cart.map(c => `${c.veg == 'veg' ? '[VEG]' : c.veg == 'nonveg' ? '[NON-VEG]' : ''} ${c.name} x ${c.qty} = ₹${c.price * c.qty}<br>`).join(''); return `<div style="padding:8px;text-align:center"><h2>${settings.shopName}</h2><p>${settings.shopAddr}<br>${settings.shopPhone}</p><hr><p style="text-align:left">Customer: ${cust}<br>Order: ${orderType}<br>Date: ${new Date().toLocaleString()}<br>Pay: ${pay}<br>Bill No: ${billNo}</p><hr><div style="text-align:left">${items}</div><hr><p style="text-align:left">Subtotal: ₹${sub}<br>Discount: -₹${disc.toFixed(2)}<br>GST: ₹${gst.toFixed(2)}</p><h3>Total: ₹${total.toFixed(2)}</h3><hr><p>Thank You!</p></div>`; }
 function testPrint() { let html = buildBillHTML('Test', [{ name: 'Chicken Biryani', qty: 1, price: 180, veg: 'nonveg' }], 180, 0, 9, 5, 189, 'Cash', 'Dine-In', 'TEST'); doPrint(html); }
 function doPrint(html) { document.getElementById('billPrint').innerHTML = html; window.print(); }
@@ -138,30 +262,29 @@ function getBillText() {
   msg += `----------------------\nSubtotal: ₹${t.sub}\nDiscount: -₹${t.disc.toFixed(2)}\nGST (${t.gstP}%): ₹${t.gst.toFixed(2)}\n*Total: ₹${t.total.toFixed(2)}*\n----------------------\nThank You Visit Again! 🙏`;
   return { msg, ...t, cust, pay, orderType, billNo };
 }
-// DIRECT SEND - Web open avvadu
-function sendBillWhatsApp() { let data = getBillText(); if (!data) return alert('Cart empty!'); let phone = document.getElementById('custPhone').value.trim(); if (!phone || phone.length != 10) return alert('Customer Phone 10 digits ivvu'); sendDirect(phone, data.msg); }
+function sendBillWhatsApp() { let data = getBillText(); if (!data) return alert('Cart empty!'); let phone = document.getElementById('custPhone').value.trim(); if (!phone || phone.length != 10) return alert('Customer Phone 10 digits required'); sendDirect(phone, data.msg); }
 function sendOwnerOnly() { let data = getBillText(); if (!data) return alert('Cart empty!'); let ownerPhone = settings.ownerPhone || '6303033677'; let itemsTxt = cart.map(c => `${c.name} x${c.qty}`).join(', '); let omsg = `🔔 *NEW BILL - ${settings.shopName}*\nBill No: ${data.billNo}\nCustomer: ${data.cust}\nItems: ${itemsTxt}\n*Total: ₹${data.total.toFixed(2)}* - ${data.pay}`; sendDirect(ownerPhone, omsg); }
 function copyBill() { let d = getBillText(); if (!d) return alert('Cart empty!'); navigator.clipboard.writeText(d.msg).then(() => alert('Copied!')); }
-function testOwnerMsg() { sendDirect(settings.ownerPhone, '🔔 TEST - Direct SMS working ✅ - ' + settings.shopName); }
+function testOwnerMsg() { sendDirect(settings.ownerPhone, '🔔 TEST - Direct SMS working - ' + settings.shopName); }
 function saveSale(data, phone) { cart.forEach(c => { let p = products.find(x => x.id == c.id); if (p) p.stock -= c.qty; }); sales.push({ date: new Date().toLocaleString(), cust: data.cust, total: data.total, mode: data.pay, items: cart.length, phone: phone || '', billNo: data.billNo }); save(); cart = []; renderCart(); renderProducts(); renderMenu(); }
 async function checkout() {
   if (cart.length == 0) return alert('Cart empty!');
   let data = getBillText(); let custPhone = document.getElementById('custPhone').value.trim(); let cartCopy = [...cart]; let custMsg = data.msg; let ownerPhone = settings.ownerPhone || '6303033677';
   let itemsTxt = cartCopy.map(c => `${c.name} x${c.qty}`).join(', ');
   let ownerMsg = `🔔 *NEW BILL - ${settings.shopName}*\nBill No: ${data.billNo}\nCustomer: ${data.cust} ${custPhone ? '- ' + custPhone : ''}\nItems: ${itemsTxt}\n*Total: ₹${data.total.toFixed(2)}*\nPayment: ${data.pay}`;
+  saveCustomerToNotepad(data.cust, custPhone, data.total.toFixed(2), data.billNo);
   saveSale(data, custPhone);
   let html = buildBillHTML(data.cust, cartCopy, data.sub, data.disc, data.gst, data.gstP, data.total, data.pay, data.orderType, data.billNo);
   doPrint(html);
-  // DIRECT - Web open avvadu
   if (settings.custNotify && custPhone && custPhone.length == 10) { await sendDirect(custPhone, custMsg); }
   if (settings.ownerNotify) { setTimeout(async () => { await sendDirect(ownerPhone, ownerMsg); }, 1500); }
   document.getElementById('custName').value = ''; document.getElementById('custPhone').value = '';
-  alert('Bill Done! SMS Direct ga vellipoyindi ✅');
+  alert('Bill Done! Customer saved to Notepad');
 }
 function updateToday() { let today = new Date().toDateString(); let sum = sales.filter(s => new Date(s.date).toDateString() == today).reduce((a, b) => a + b.total, 0); let el=document.getElementById('todaySales'); if(el) el.innerText = 'Today: ₹' + sum.toFixed(0); }
 function showReport() { let today = new Date().toDateString(); let t = sales.filter(s => new Date(s.date).toDateString() == today); let sum = t.reduce((a, b) => a + b.total, 0); document.getElementById('reportText').innerHTML = `Today Bills: ${t.length}<br>Total Sales: ₹${sum}`; document.getElementById('salesList').innerHTML = t.map(s => `<div class="prod"><div><b>${s.cust} ${s.phone ? '- ' + s.phone : ''}</b><br><small>${s.date} | ${s.mode}</small></div><b>₹${s.total}</b></div>`).join(''); }
-function clearAll() { if (confirm('All data delete?')) { localStorage.clear(); location.reload(); } }
+function clearAll() { askPin('clearAll'); }
 document.getElementById('gstMode')?.addEventListener('change', renderCart);
 document.getElementById('discount')?.addEventListener('change', renderCart);
 document.getElementById('custPhone')?.addEventListener('input', () => { document.getElementById('custDisplay').innerText = document.getElementById('custPhone').value || 'Enter Phone'; });
-loadSettings(); renderProducts(); renderCart(); renderMenu(); renderColumns(); updateToday();
+checkLogin(); loadSettings(); renderProducts(); renderCart(); renderMenu(); renderColumns(); renderCustomers(); updateToday();
